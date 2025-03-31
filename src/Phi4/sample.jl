@@ -14,8 +14,8 @@ end
 milstein_derivative_Phi4!(J, u, p, t) = fill!(J, 0.0) # Milstein derivative of g: dg/dx * g = 0
 
 # Define an algorithm switching solver for both stiff and non-stiff problems
-choice_function(integrator) = (Int(integrator.dt < 0.001) + 1)
-alg_switch = StochasticCompositeAlgorithm((LambaEM(), ImplicitRKMil()), choice_function)
+choice_function_Phi4(integrator) = (Int(integrator.dt < 0.001) + 1)
+alg_switch_Phi4 = StochasticCompositeAlgorithm((LambaEM(), ImplicitRKMil()), choice_function_Phi4)
 
 """
     sample_phi4(model, x0, tmax, tsave; rng=Xoshiro(1234), diverging_threshold=1e6)
@@ -45,7 +45,7 @@ function sample_phi4(model::Phi4Model, x0::Vector{Float64}, tmax::Float64, tsave
     # Solver options
     isunstable(dt,u,p,t) = any(x->x>diverging_threshold, u)
     # Solve the SDE problem
-    sol = solve(sde, alg_switch; saveat=tsave, seed=rand(rng, UInt32), unstable_check=isunstable)
+    sol = solve(sde, alg_switch_Phi4; saveat=tsave, seed=rand(rng, UInt32), unstable_check=isunstable)
     if sol.retcode == ReturnCode.Unstable
         throw(error("Diverging solution"))
     end

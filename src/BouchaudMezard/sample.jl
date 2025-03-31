@@ -13,8 +13,8 @@ function milstein_derivative_BM!(J, u, p, t) # Milstein derivative of g: dg/dx *
 end
 
 # Define an algorithm switching solver for both stiff and non-stiff problems
-choice_function(integrator) = (Int(integrator.dt < 0.001) + 1)
-alg_switch = StochasticCompositeAlgorithm((ImplicitEM(), ISSEM()), choice_function)
+choice_function_BM(integrator) = (Int(integrator.dt < 0.001) + 1)
+alg_switch_BM = StochasticCompositeAlgorithm((ImplicitEM(), ISSEM()), choice_function_BM)
 
 
 """
@@ -44,7 +44,7 @@ function sample_BM(model::BMModel, x0::Vector{Float64}, tmax::Float64, tsave::Ve
     # Solver options
     isunstable(dt,u,p,t) = any(x->x>diverging_threshold, u)
     # Solve the SDE problem
-    sol = solve(sde, alg_switch; dt=0.01, saveat=tsave, seed=rand(rng, UInt32), unstable_check=isunstable)
+    sol = solve(sde, alg_switch_BM; dt=0.01, saveat=tsave, seed=rand(rng, UInt32), unstable_check=isunstable)
     if sol.retcode == ReturnCode.Unstable
         throw(error("Diverging solution"))
     end
