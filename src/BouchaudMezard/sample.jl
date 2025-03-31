@@ -16,6 +16,9 @@ end
 choice_function_BM(integrator) = (Int(integrator.dt < 0.001) + 1)
 alg_switch_BM = StochasticCompositeAlgorithm((ImplicitEM(), ISSEM()), choice_function_BM)
 
+# Define a isoutofdomain function for the Bouchaud-Mezard model
+isoutofdomain_BM(u,p,t) = any(x -> x < 0, u)
+
 
 """
     sample_BM(model, x0, tmax, tsave; rng=Xoshiro(1234), diverging_threshold=1e6)
@@ -44,7 +47,7 @@ function sample_BM(model::BMModel, x0::Vector{Float64}, tmax::Float64, tsave::Ve
     # Solver options
     isunstable(dt,u,p,t) = any(x->x>diverging_threshold, u)
     # Solve the SDE problem
-    sol = solve(sde, alg_switch_BM; dt=0.01, saveat=tsave, seed=rand(rng, UInt32), unstable_check=isunstable)
+    sol = solve(sde, alg_switch_BM; reltol=1e-3, abstol=1e-4, dt=0.01, saveat=tsave, seed=rand(rng, UInt32), unstable_check=isunstable)#, isoutofdomain=isoutofdomain_BM)
     if sol.retcode == ReturnCode.Unstable
         throw(error("Diverging solution"))
     end

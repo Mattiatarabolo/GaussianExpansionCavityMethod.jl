@@ -89,7 +89,13 @@ Construct a Bouchaud-Mezard model with a random regular graph coupling matrix wi
 """
 function BMModelRRG(N::Int, K::Union{Int, Float64}, J::Float64, sigma::Float64)
     J_params = [J]
-    gen_J = (N, K, J_params; rng=Xoshiro(1234)) -> adjacency_matrix(random_regular_graph(N, K; rng=rng)) .* J_params[1]
+    function gen_J(N, K, J_params; rng=Xoshiro(1234))
+        J = adjacency_matrix(random_regular_graph(N, K; rng=rng)) .* J_params[1]
+        @inbounds @fastmath @simd for i in 1:N
+            J[i,i] = - J_params[1] * K
+        end
+        return J
+    end
     BMModelEnsemble(N, K, gen_J, J_params, sigma)
 end
 
