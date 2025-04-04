@@ -94,12 +94,14 @@ function compute_R(K, J, D, Rh, R, mu, n, l, dt)
 end
 
 """
-    integrate_2spin_RRG(model, Nmax, tmax; backup=false, backupfile="backup_matrices.jld2", backupevery=1000)
+    integrate_2spin_RRG(K, J, D, Nmax, tmax; backup=false, backupfile="backup_matrices.jld2", backupevery=1000)
 
 Integrate the disorder averaged cavity equations for a 2-spin model on a random regular graph with bimodal interactions.
 
-# Arguments
-- `model::TwoSpinModel`: The 2-spin model.
+# Srguments
+- `K::Int`: The average number of neighbors.
+- `J::Float64`: The coupling strength.
+- `D::Float64`: The noise strength.
 - `Nmax::Int`: The maximum number of timesteps.
 - `tmax::Float64`: The maximum time to integrate to.
 
@@ -115,9 +117,7 @@ Integrate the disorder averaged cavity equations for a 2-spin model on a random 
 - `Rh::OffsetArray`: The disorder averaged cavity response Rh matrix.
 - `mu::OffsetArray`: The Lagrange multiplier mu array.
 """
-function integrate_2spin_RRG(model::TwoSpinModel, Nmax::Int, tmax::Float64; backup=false, backupfile="backup_matrices.jld2", backupevery=1000)
-    # Unpack model parameters
-    K, J, D = model.K, model.J, model.D
+function integrate_2spin_RRG(K::Int, J::Float64, D::Float64, Nmax::Int, tmax::Float64; backup=false, backupfile="backup_matrices.jld2", backupevery=1000)
     # Check if parameters are valid
     @assert K > 0 "K must be positive"
     @assert J > 0 "J must be positive"
@@ -160,7 +160,7 @@ function integrate_2spin_RRG(model::TwoSpinModel, Nmax::Int, tmax::Float64; back
 		end
         # Save backup every backupevery iterations
 		if backup && n % backupevery == 0
-            jldsave(backup_file; C, R, Ch, Rh, mu, n)
+            jldsave(backupfile; C, R, Ch, Rh, mu, n)
         end
 	end
     return C, R, Ch, Rh, mu

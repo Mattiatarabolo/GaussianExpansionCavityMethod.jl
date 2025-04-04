@@ -32,10 +32,7 @@ rng = Xoshiro(1234)
 seeds = rand(rng, UInt32, nsim)
 # Generate random adjacencey matrices for each sample (will use same matrix for each value of (D, lam) with same seed)
 function gen_Jmat(N, K, J; rng=Xoshiro(1234))
-    Jmat = adjacency_matrix(random_regular_graph(N, K; rng=rng)) .* J
-    @inbounds @fastmath @simd for i in 1:N
-        Jmat[i,i] = - J * K
-    end
+    Jmat = adjacency_matrix(random_regular_graph(N, K; rng=rng)) .* J / K
     return Jmat
 end
 J_matrices = Dict((K, isim) => gen_Jmat(N, K, J; rng=rng) for (K, isim) in Iterators.product(Ks, 1:nsim))
