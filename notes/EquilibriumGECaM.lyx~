@@ -1,0 +1,433 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children no
+\language italian
+\language_package default
+\inputencoding utf8
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement class
+\float_alignment class
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content true
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\lang american
+GECaM equations for equilibrium
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+We consider the GECaM equations for a linearly-coupled system of Langevin equations with additive noise,
+ i.e.
+ a system of linearly interacting Ornstein-Uhlenbeck processes.
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\frac{d}{dt}\mu_{i\setminus j}(t) & =-\lambda_{i}\mu_{i\setminus j}(t)+\sum_{k\in\partial i\setminus j}J_{ik}\mu_{k\setminus i}(t)+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}\mu_{i\setminus j}(s),\\
+\frac{\partial}{\partial t}R_{i\setminus j}(t,t') & =-\lambda_{i}R_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{t'}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}R_{i\setminus j}(s,t')+\delta(t-t'),\\
+\frac{\partial}{\partial t}C_{i\setminus j}(t,t') & =-\lambda_{i}C_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}C_{i\setminus j}(s,t')+2DR_{i\setminus j}(t',t)\nonumber \\
+ & \quad+\sum_{k\in\partial i\setminus j}\int_{0}^{t'}dsR_{i\setminus j}(t',s)J_{ik}^{2}C_{k\setminus i}(t,s).
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+In the long-time limit 
+\begin_inset Formula $t,t'\to\infty$
+\end_inset
+
+ the correlations and responses become time-translational invariant (TTI),
+ i.e.
+ 
+\begin_inset Formula $C_{i\setminus j}(t,t')=C_{i\setminus j}(\tau=t-t')$
+\end_inset
+
+ and 
+\begin_inset Formula $R_{i\setminus j}(t,t')=R_{i\setminus j}(\tau=t-t')$
+\end_inset
+
+ keeping time differences 
+\begin_inset Formula $\tau=t-t'$
+\end_inset
+
+ finite.
+ The equations for the responses and correlations read
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\dot{R}_{i\setminus j}(\tau) & =-\lambda_{i}R_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{t'}^{t}dsR_{k\setminus i}(t-s)R_{i\setminus j}(s-t')+\delta(\tau),\label{eq:R_TTI_pre}\\
+\dot{C}_{i\setminus j}(\tau) & =-\lambda_{i}C_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{0}^{t}dsR_{k\setminus i}(t-s)C_{i\setminus j}(s-t')+2DR_{i\setminus j}(-\tau)\nonumber \\
+ & \quad+\sum_{k\in\partial i\setminus j}J_{ik}^{2}\int_{0}^{t'}dsR_{i\setminus j}(t'-s)C_{k\setminus i}(t-s).\label{eq:C_TTI_pre}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+The three integrals can be written as,
+ respectively,
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\int_{t'}^{t}dsR_{k\setminus i}(t-s)R_{i\setminus j}(s-t') & =\int_{0}^{\tau}duR_{k\setminus i}(u)R_{i\setminus j}(\tau-u),\\
+\int_{0}^{t}dsR_{k\setminus i}(t-s)C_{i\setminus j}(s-t') & =\int_{0}^{t'}dsR_{k\setminus i}(t-s)C_{i\setminus j}(s-t')+\int_{t'}^{t}dsR_{k\setminus i}(t-s)C_{i\setminus j}(s-t')\nonumber \\
+ & =\int_{\tau}^{t}duR_{k\setminus i}(u)C_{i\setminus j}(\tau-u)+\int_{0}^{\tau}duR_{k\setminus i}(u)C_{i\setminus j}(\tau-u),\\
+\int_{0}^{t'}dsR_{i\setminus j}(t'-s)C_{k\setminus i}(t-s) & =\int_{\tau}^{t}duC_{k\setminus i}(u)R_{i\setminus j}(u-\tau).
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+Eqs.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:R_TTI_pre"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:C_TTI_pre"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ become
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\dot{R}_{i\setminus j}(\tau) & =-\lambda_{i}R_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{0}^{\tau}duR_{k\setminus i}(u)R_{i\setminus j}(\tau-u)+\delta(\tau),\label{eq:R_TTI}\\
+\dot{C}_{i\setminus j}(\tau) & =-\lambda_{i}C_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\left(\int_{\tau}^{t}duR_{k\setminus i}(u)C_{i\setminus j}(\tau-u)+\int_{0}^{\tau}duR_{k\setminus i}(u)C_{i\setminus j}(\tau-u)\right)\nonumber \\
+ & \quad+2DR_{i\setminus j}(-\tau)+\sum_{k\in\partial i\setminus j}J_{ik}^{2}\int_{\tau}^{t}duC_{k\setminus i}(u)R_{i\setminus j}(u-\tau).\label{eq:C_TTI}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+If the interaction matrix 
+\begin_inset Formula $\bm{J}$
+\end_inset
+
+ is symmetric,
+ i.e.
+ 
+\begin_inset Formula $J_{ij}=J_{ji}$
+\end_inset
+
+ for every 
+\begin_inset Formula $i,j=1,\dots,N$
+\end_inset
+
+,
+ the system satisfies detailed balance and it eventually reaches equilibrium after a sufficient long time.
+ Within this regime the Fluctuation Dissipation Theorem (FDT) holds,
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{equation}
+DR_{i\setminus j}^{{\rm eq}}(\tau)=-\dot{C_{i\setminus j}^{eq}}(\tau)\Theta(\tau).\label{eq:FDT}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+Thus,
+ by substituting the FDT into Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:C_TTI"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ we obtain an equation for the equilibrium correlations only,
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\dot{C_{i\setminus j}^{eq}}(\tau)\left(1-2\Theta(-\tau)\right) & =-\lambda_{i}C_{i\setminus j}^{eq}(\tau)-\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\left(\int_{\tau}^{t}du\dot{C_{k\setminus i}^{eq}}(u)C_{i\setminus j}^{eq}(\tau-u)+\int_{0}^{\tau}du\dot{C_{k\setminus i}^{eq}}(u)C_{i\setminus j}^{eq}(\tau-u)\right)\nonumber \\
+ & \quad-\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\int_{\tau}^{t}duC_{k\setminus i}^{{\rm eq}}(u)\dot{C_{i\setminus j}^{eq}}(u-\tau).
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+Integrating by parts the last integral
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\[
+\int_{\tau}^{t}duC_{k\setminus i}^{{\rm eq}}(u)\dot{C_{i\setminus j}^{eq}}(u-\tau)=C_{k\setminus i}^{{\rm eq}}(t)C_{i\setminus j}^{eq}(t')-C_{k\setminus i}^{{\rm eq}}(\tau)C_{i\setminus j}^{eq}(0)-\int_{\tau}^{t}du\dot{C_{k\setminus i}^{{\rm eq}}}(u)C_{i\setminus j}^{eq}(u-\tau).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+Taking the limit 
+\begin_inset Formula $t,t'\to\infty$
+\end_inset
+
+ the first term 
+\begin_inset Formula $C_{k\setminus i}^{{\rm eq}}(t)C_{i\setminus j}^{eq}(t')\to C_{k\setminus i}^{{\rm eq}}(\infty)C_{i\setminus j}^{eq}(\infty)$
+\end_inset
+
+ vanishes,
+ since the equilibrium correlation decays to zero for long time differences.
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+The equilibrium correlations are therefore obtained by solving the set of equations
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+{\rm sgn}(\tau)\dot{C_{i\setminus j}^{eq}}(\tau) & =-\lambda_{i}C_{i\setminus j}^{eq}(\tau)+\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\left(C_{k\setminus i}^{{\rm eq}}(\tau)C_{i\setminus j}^{eq}(0)-\int_{0}^{\tau}du\dot{C_{k\setminus i}^{eq}}(u)C_{i\setminus j}^{eq}(\tau-u)\right).\label{eq:C_equilibrium}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+
+\lang american
+Numerical solution
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+A numerical solution of Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:C_equilibrium"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ can be found by discretizing time with a timestep 
+\begin_inset Formula $\Delta$
+\end_inset
+
+,
+ i.e.
+ 
+\begin_inset Formula $t=n\Delta$
+\end_inset
+
+,
+ 
+\begin_inset Formula $n=0,\dots,T$
+\end_inset
+
+ with 
+\begin_inset Formula $T=\mathcal{T}/\Delta$
+\end_inset
+
+.
+ Within this discretization the equilibrium correlation function becomes a time vector with 
+\begin_inset Formula $T$
+\end_inset
+
+ components 
+\begin_inset Formula $C_{i\setminus j}^{eq,n}=C_{i\setminus j}^{eq}(t=n\Delta)$
+\end_inset
+
+.
+ Then a discretized version of Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:C_equilibrium"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ is
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+C_{i\setminus j}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i\setminus j}^{eq,0}\nonumber \\
+ & \quad-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\sum_{m=0}^{n-1}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right)C_{i\setminus j}^{eq,n-m}.\label{eq:C_equilibrium_discretized}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

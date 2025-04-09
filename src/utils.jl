@@ -32,8 +32,13 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 """
 function compute_stats(trajs::Matrix{Float64})
     T = size(trajs, 2)
-    mean_traj = reshape(mean(trajs; dims=1), T)
-    std_traj = reshape(std(trajs; dims=1), T)
+    # Compute mean and standard deviation for each time
+    mean_traj = mean(trajs; dims=1)
+    std_traj = stdm(trajs, mean_traj; dims=1)
+    # Reshape mean_traj and std_traj to be vectors
+    mean_traj = reshape(mean_traj, T)
+    std_traj = reshape(std_traj, T)
+    # Compute the average autocorrelation
     autocorr = cov(trajs; dims=1) # Covariance matrix
     return mean_traj, std_traj, autocorr
 end
