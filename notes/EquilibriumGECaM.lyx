@@ -111,10 +111,10 @@ We consider the GECaM equations for a linearly-coupled system of Langevin equati
 \lang american
 \begin_inset Formula 
 \begin{align}
-\frac{d}{dt}\mu_{i\setminus j}(t) & =-\lambda_{i}\mu_{i\setminus j}(t)+\sum_{k\in\partial i\setminus j}J_{ik}\mu_{k\setminus i}(t)+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}\mu_{i\setminus j}(s),\\
-\frac{\partial}{\partial t}R_{i\setminus j}(t,t') & =-\lambda_{i}R_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{t'}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}R_{i\setminus j}(s,t')+\delta(t-t'),\\
+\frac{d}{dt}\mu_{i\setminus j}(t) & =-\lambda_{i}\mu_{i\setminus j}(t)+\sum_{k\in\partial i\setminus j}J_{ik}\mu_{k\setminus i}(t)+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}\mu_{i\setminus j}(s),\label{eq:mucav_GECaM}\\
+\frac{\partial}{\partial t}R_{i\setminus j}(t,t') & =-\lambda_{i}R_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{t'}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}R_{i\setminus j}(s,t')+\delta(t-t'),\label{eq:Rcav_GECaM}\\
 \frac{\partial}{\partial t}C_{i\setminus j}(t,t') & =-\lambda_{i}C_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}C_{i\setminus j}(s,t')+2DR_{i\setminus j}(t',t)\nonumber \\
- & \quad+\sum_{k\in\partial i\setminus j}\int_{0}^{t'}dsR_{i\setminus j}(t',s)J_{ik}^{2}C_{k\setminus i}(t,s).
+ & \quad+\sum_{k\in\partial i\setminus j}\int_{0}^{t'}dsR_{i\setminus j}(t',s)J_{ik}^{2}C_{k\setminus i}(t,s).\label{eq:Ccav_GECaM}
 \end{align}
 
 \end_inset
@@ -152,9 +152,9 @@ In the long-time limit
 \lang american
 \begin_inset Formula 
 \begin{align}
-\dot{R}_{i\setminus j}(\tau) & =-\lambda_{i}R_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{t'}^{t}dsR_{k\setminus i}(t-s)R_{i\setminus j}(s-t')+\delta(\tau),\label{eq:R_TTI_pre}\\
+\dot{R}_{i\setminus j}(\tau) & =-\lambda_{i}R_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{t'}^{t}dsR_{k\setminus i}(t-s)R_{i\setminus j}(s-t')+\delta(\tau),\label{eq:Rcav_TTI_pre}\\
 \dot{C}_{i\setminus j}(\tau) & =-\lambda_{i}C_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{0}^{t}dsR_{k\setminus i}(t-s)C_{i\setminus j}(s-t')+2DR_{i\setminus j}(-\tau)\nonumber \\
- & \quad+\sum_{k\in\partial i\setminus j}J_{ik}^{2}\int_{0}^{t'}dsR_{i\setminus j}(t'-s)C_{k\setminus i}(t-s).\label{eq:C_TTI_pre}
+ & \quad+\sum_{k\in\partial i\setminus j}J_{ik}^{2}\int_{0}^{t'}dsR_{i\setminus j}(t'-s)C_{k\setminus i}(t-s).\label{eq:Ccav_TTI_pre}
 \end{align}
 
 \end_inset
@@ -192,7 +192,7 @@ Eqs.
  
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "eq:R_TTI_pre"
+reference "eq:Rcav_TTI_pre"
 plural "false"
 caps "false"
 noprefix "false"
@@ -203,7 +203,7 @@ nolink "false"
  and 
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "eq:C_TTI_pre"
+reference "eq:Ccav_TTI_pre"
 plural "false"
 caps "false"
 noprefix "false"
@@ -219,9 +219,9 @@ nolink "false"
 \lang american
 \begin_inset Formula 
 \begin{align}
-\dot{R}_{i\setminus j}(\tau) & =-\lambda_{i}R_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{0}^{\tau}duR_{k\setminus i}(u)R_{i\setminus j}(\tau-u)+\delta(\tau),\label{eq:R_TTI}\\
+\dot{R}_{i\setminus j}(\tau) & =-\lambda_{i}R_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\int_{0}^{\tau}duR_{k\setminus i}(u)R_{i\setminus j}(\tau-u)+\delta(\tau),\label{eq:Rcav_TTI}\\
 \dot{C}_{i\setminus j}(\tau) & =-\lambda_{i}C_{i\setminus j}(\tau)+\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}\left(\int_{\tau}^{t}duR_{k\setminus i}(u)C_{i\setminus j}(\tau-u)+\int_{0}^{\tau}duR_{k\setminus i}(u)C_{i\setminus j}(\tau-u)\right)\nonumber \\
- & \quad+2DR_{i\setminus j}(-\tau)+\sum_{k\in\partial i\setminus j}J_{ik}^{2}\int_{\tau}^{t}duC_{k\setminus i}(u)R_{i\setminus j}(u-\tau).\label{eq:C_TTI}
+ & \quad+2DR_{i\setminus j}(-\tau)+\sum_{k\in\partial i\setminus j}J_{ik}^{2}\int_{\tau}^{t}duC_{k\setminus i}(u)R_{i\setminus j}(u-\tau).\label{eq:Ccav_TTI}
 \end{align}
 
 \end_inset
@@ -272,7 +272,7 @@ Thus,
  
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "eq:C_TTI"
+reference "eq:Ccav_TTI"
 plural "false"
 caps "false"
 noprefix "false"
@@ -342,7 +342,7 @@ The cavity equilibrium correlations are therefore obtained by solving the set of
 \lang american
 \begin_inset Formula 
 \begin{align}
-{\rm sgn}(\tau)\dot{C_{i\setminus j}^{eq}}(\tau) & =-\lambda_{i}C_{i\setminus j}^{eq}(\tau)+\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\left(C_{k\setminus i}^{{\rm eq}}(\tau)C_{i\setminus j}^{eq}(0)-\int_{0}^{\tau}du\dot{C_{k\setminus i}^{eq}}(u)C_{i\setminus j}^{eq}(\tau-u)\right).\label{eq:C_equilibrium}
+{\rm sgn}(\tau)\dot{C_{i\setminus j}^{eq}}(\tau) & =-\lambda_{i}C_{i\setminus j}^{eq}(\tau)+\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\left(C_{k\setminus i}^{{\rm eq}}(\tau)C_{i\setminus j}^{eq}(0)-\int_{0}^{\tau}du\dot{C_{k\setminus i}^{eq}}(u)C_{i\setminus j}^{eq}(\tau-u)\right).\label{eq:Ccav_eq}
 \end{align}
 
 \end_inset
@@ -361,7 +361,7 @@ The full equilibrium correlations are obtained from the cavity ones as
 \lang american
 \begin_inset Formula 
 \begin{align}
-{\rm sgn}(\tau)\dot{C_{i}^{eq}}(\tau) & =-\lambda_{i}C_{i}^{eq}(\tau)+\sum_{k\in\partial i}\frac{J_{ik}^{2}}{D}\left(C_{k\setminus i}^{{\rm eq}}(\tau)C_{i}^{eq}(0)-\int_{0}^{\tau}du\dot{C_{k\setminus i}^{eq}}(u)C_{i}^{eq}(\tau-u)\right).\label{eq:Cfull_equilibrium}
+{\rm sgn}(\tau)\dot{C_{i}^{eq}}(\tau) & =-\lambda_{i}C_{i}^{eq}(\tau)+\sum_{k\in\partial i}\frac{J_{ik}^{2}}{D}\left(C_{k\setminus i}^{{\rm eq}}(\tau)C_{i}^{eq}(0)-\int_{0}^{\tau}du\dot{C_{k\setminus i}^{eq}}(u)C_{i}^{eq}(\tau-u)\right).\label{eq:Cfull_eq}
 \end{align}
 
 \end_inset
@@ -382,7 +382,7 @@ A numerical solution of Eq.
  
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "eq:C_equilibrium"
+reference "eq:Ccav_eq"
 plural "false"
 caps "false"
 noprefix "false"
@@ -423,7 +423,7 @@ nolink "false"
  
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "eq:C_equilibrium"
+reference "eq:Ccav_eq"
 plural "false"
 caps "false"
 noprefix "false"
@@ -439,10 +439,10 @@ nolink "false"
 \lang american
 \begin_inset Formula 
 \begin{align}
-C_{i\setminus j}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i\setminus j}^{eq,0}\nonumber \\
- & \quad-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\sum_{m=0}^{n-1}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right)C_{i\setminus j}^{eq,n-m}.\label{eq:C_equilibrium_discretized}\\
- & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\frac{C_{i\setminus j}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\\
- & \quad-\Delta\sum_{m=0}^{n-1}\frac{C_{i\setminus j}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right).
+C_{i\setminus j}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}+\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i\setminus j}^{eq,0}\nonumber \\
+ & \quad-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\sum_{m=0}^{n-1}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right)C_{i\setminus j}^{eq,n-m}.\\
+ & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}+\Delta\frac{C_{i\setminus j}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
+ & \quad-\Delta\sum_{m=0}^{n-1}\frac{C_{i\setminus j}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right).\label{eq:Ccav_eq_discrete}
 \end{align}
 
 \end_inset
@@ -461,14 +461,16 @@ while for the full correlation we obtain
 \lang american
 \begin_inset Formula 
 \begin{align}
-C_{i}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{eq,n}-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i}^{eq,0}\nonumber \\
- & \quad-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\sum_{m=0}^{n-1}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right)C_{i}^{eq,n-m}.\label{eq:C_equilibrium_discretized-1}\\
- & =\left(1-\lambda_{i}\Delta\right)C_{i}^{eq,n}-\Delta\frac{C_{i}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\\
- & \quad-\Delta\sum_{m=0}^{n-1}\frac{C_{i}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right).
+C_{i}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{eq,n}+\Delta\frac{C_{i}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
+ & \quad-\Delta\sum_{m=0}^{n-1}\frac{C_{i}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right).\label{eq:Cfull_eq_discrete}
 \end{align}
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 

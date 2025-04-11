@@ -94,14 +94,12 @@ end
 # Set the remaining time points to the threshold value
 
 """
-    sample_ensemble_OU(model_ensemble, x0_min, x0_max, tmax, tsave, nsample; rng=Xoshiro(1234), diverging_threshold=1e6, showprogress=false, dt=1e-3)
+    sample_ensemble_OU(model_ensemble, tmax, tsave, nsample; rng=Xoshiro(1234), diverging_threshold=1e6, showprogress=false, dt=1e-3)
 
 Sample an ensemble of Ornstein-Uhlenbeck models using solvers from DifferentialEquations.jl.
 
 # Arguments
 - `model_ensemble::OUModelEnsemble`: The ensemble of Ornstein-Uhlenbeck models to sample.
-- `x0_min::Float64`: The minimum initial condition.
-- `x0_max::Float64`: The maximum initial condition.
 - `tmax::Float64`: The maximum time to integrate to.
 - `tsave::Vector{Float64}`: The time points to save the trajectory at.
 - `nsample::Int`: The number of samples to generate.
@@ -117,10 +115,9 @@ Sample an ensemble of Ornstein-Uhlenbeck models using solvers from DifferentialE
 - `traj_alls::Vector{Matrix{Float64}}`: The trajectories for each sample. Each column corresponds to a time point.
 - `sim::Vector{RODESolution}`: The solution objects for each sample.
 """
-function sample_ensemble_OU(ensemble_model::OUModelEnsemble, x0_min::Float64, x0_max::Float64, tmax::Float64, tsave::Vector{Float64}, nsample::Int; rng=Xoshiro(1234), diverging_threshold=1e6, showprogress=false, dt=1e-3)
+function sample_ensemble_OU(ensemble_model::OUModelEnsemble, tmax::Float64, tsave::Vector{Float64}, nsample::Int; rng=Xoshiro(1234), diverging_threshold=1e6, showprogress=false, dt=1e-3)
     # Define threadsafe variables
     local_ensemble_models = [deepcopy(ensemble_model) for _ in 1:Threads.nthreads()]
-    local_x0_lims = [(x0_min, x0_max) for _ in 1:Threads.nthreads()]
     local_tsaves = [tsave for _ in 1:Threads.nthreads()]
     local_tmaxs = [tmax for _ in 1:Threads.nthreads()]
     local_rngs = [Xoshiro() for _ in 1:Threads.nthreads()]
@@ -138,7 +135,6 @@ function sample_ensemble_OU(ensemble_model::OUModelEnsemble, x0_min::Float64, x0
         # Initialize local variables
         #lock(lk) do
             local_ensemble_model = local_ensemble_models[Threads.threadid()]
-            local_x0_min, local_x0_max = local_x0_lims[Threads.threadid()]
             local_tmax = local_tmaxs[Threads.threadid()]
             local_tsave = local_tsaves[Threads.threadid()]
             local_rng = local_rngs[Threads.threadid()]
@@ -150,7 +146,7 @@ function sample_ensemble_OU(ensemble_model::OUModelEnsemble, x0_min::Float64, x0
         # Update the model with the new adjacency matrix
         local_model.J .= J
         # Sample the initial condition
-        x0 = rand(local_rng, local_model.N) .* (local_x0_max - local_x0_min) .+ local_x0_min
+        x0 = local_ensemble_model.gen_x0(local_ensemble_model.N, local_ensemble_model.x0_params; rng=local_rng)
         tvals, trajectories = sample_OU(local_model, x0, local_tmax, local_tsave; rng=local_rng, diverging_threshold=diverging_threshold, dt=dt)
         # Store the results using threadsafe access
         lock(lk) do

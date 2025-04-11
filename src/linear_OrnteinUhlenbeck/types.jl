@@ -75,6 +75,7 @@ A type representing the ensemble of disordered Ornstein-Uhlenbeck model.
 - `J_params::Vector{Float64}`: The parameters for the coupling matrix generator.
 - `lambdas::Vector{Float64}`: The local decay rates.
 - `D::Float64`: The diffusion coefficient.
+
 """
 struct OUModelEnsemble
     N::Integer
@@ -83,8 +84,10 @@ struct OUModelEnsemble
     J_params::Vector{Float64}
     lambdas::Vector{Float64}
     D::Float64
+    gen_x0::Function
+    x0_params::Vector{Float64}
     """
-        OUModelEnsemble(N, K, gen_J, J_params, lambdas, D)
+        OUModelEnsemble(N, K, gen_J, J_params, lambdas, D, gen_x0, x0_params)
     
     Construct a Ornstein-Uhlenbeck model ensemble.
 
@@ -95,17 +98,19 @@ struct OUModelEnsemble
     - `J_params::Vector{Float64}`: The parameters for the coupling matrix generator.
     - `lambdas::Vector{Float64}`: The local decay rates.
     - `D::Float64`: The diffusion coefficient.
+    - `gen_x0::Function`: The function to generate the initial conditions.
+    - `x0_params::Vector{Float64}`: The parameters for the initial condition generator.
 
     # Returns
     - `OUModelEnsemble`: The Ornstein-Uhlenbeck model ensemble.
     """
-    function OUModelEnsemble(N::Int, K::Union{Int, Float64}, gen_J::Function, J_params::Vector{Float64}, lambdas::Vector{Float64}, D::Float64)
-        new(N, K, gen_J, J_params, lambdas, D)
+    function OUModelEnsemble(N::Int, K::Union{Int, Float64}, gen_J::Function, J_params::Vector{Float64}, lambdas::Vector{Float64}, D::Float64, gen_x0::Function, x0_params::Vector{Float64})
+        new(N, K, gen_J, J_params, lambdas, D, gen_x0, x0_params)
     end
 end
 
 """
-    OUModelRRG(N, K, J, lambdas, D)
+    OUModelRRG(N, K, J, lambdas, D, x0_min, x0_max)
 
 Construct a Ornstein-Uhlenbeck model with a random regular graph coupling matrix with ferromagnetic interactions.
 
@@ -115,17 +120,21 @@ Construct a Ornstein-Uhlenbeck model with a random regular graph coupling matrix
 - `J::Float64`: The coupling strength.
 - `lambdas::Vector{Float64}`: The local decay rates.
 - `D::Float64`: The diffusion coefficient.
+- `x0_min::Float64`: The minimum initial condition.
+- `x0_max::Float64`: The maximum initial condition.
 
 # Returns
 - `OUModelEnsemble`: The Ornstein-Uhlenbeck model.
 """
-function OUModelRRG(N::Int, K::Union{Int, Float64}, J::Float64, lambdas::Vector{Float64}, D::Float64)
+function OUModelRRG(N::Int, K::Union{Int, Float64}, J::Float64, lambdas::Vector{Float64}, D::Float64, x0_min::Float64, x0_max::Float64)
     J_params = [J]
     gen_J = (N, K, J_params; rng=Xoshiro(1234)) -> adjacency_matrix(random_regular_graph(N, K; rng=rng)) .* J_params[1]
-    OUModelEnsemble(N, K, gen_J, J_params, lambdas, D, u)
+    x0_params = [x0_min, x0_max]
+    gen_x0 = (N, x0_params; rng=Xoshiro(1234)) -> rand(rng, N) .* (x0_params[2] - x0_params[1]) .+ x0_params[1]
+    OUModelEnsemble(N, K, gen_J, J_params, lambdas, D, gen_x0, x0_params)
 end
 """
-    OUModelRRG(N, K, J, lambda, D)
+    OUModelRRG(N, K, J, lambda, D, x0_min, x0_max)
 
 Construct a Ornstein-Uhlenbeck model with a random regular graph coupling matrix with ferromagnetic interactions.
 
@@ -135,16 +144,19 @@ Construct a Ornstein-Uhlenbeck model with a random regular graph coupling matrix
 - `J::Float64`: The coupling strength.
 - `lambda::Float64`: The uniform local decay rates.
 - `D::Float64`: The diffusion coefficient.
-
+- `x0_min::Float64`: The minimum initial condition.
+- `x0_max::Float64`: The maximum initial condition.
 
 # Returns
 - `OUModelEnsemble`: The Ornstein-Uhlenbeck model.
 """
-function OUModelRRG(N::Int, K::Union{Int, Float64}, J::Float64, lambda::Float64, D::Float64)
+function OUModelRRG(N::Int, K::Union{Int, Float64}, J::Float64, lambda::Float64, D::Float64, x0_min::Float64, x0_max::Float64)
     J_params = [J]
     gen_J = (N, K, J_params; rng=Xoshiro(1234)) -> adjacency_matrix(random_regular_graph(N, K; rng=rng)) .* J_params[1]
     lambdas = fill(lambda, N)
-    OUModelEnsemble(N, K, gen_J, J_params, lambdas, D)
+    x0_params = [x0_min, x0_max]
+    gen_x0 = (N, x0_params; rng=Xoshiro(1234)) -> rand(rng, N) .* (x0_params[2] - x0_params[1]) .+ x0_params[1]
+    OUModelEnsemble(N, K, gen_J, J_params, lambdas, D, gen_x0, x0_params)
 end
 
 
@@ -376,6 +388,8 @@ A structure representing a equilibrium node in a graph with its neighbors and as
 - `neighs_idxs::Dict{Int, Int}`: A dictionary mapping neighbor indices to their positions in the `neighs` vector.
 - `cavs::Vector{CavityEQ}`: The equilibrium cavities associated with the node.
 - `marg::MarginalEQ`: The equilibrium marginal associated with the node.
+- `sumC::OffsetVector{Float64, Vector{Float64}}`: Internal variable.
+- `sumdiffC::OffsetVector{Float64, Vector{Float64}}`: Internal variable.
 
 # Description
 The `NodeEQ` structure represents a equilibrium node in a graph, along with its neighbors and associated equilibrium cavities and marginal. Each node has an index `i`, a vector of neighbor indices `neighs`, a vector of equilibrium cavities `cavs` and a equilibrium marginal `marg`.
@@ -383,12 +397,14 @@ The `NodeEQ` structure represents a equilibrium node in a graph, along with its 
 # Methods
 - `NodeEQ(i::Int, neighs::Vector{Int}, T::Int)`: Constructs a node with index `i`, neighbors `neighs`, and `T` timesteps.
 """
-struct NodeEQ
+mutable struct NodeEQ
     i::Int
     neighs::Vector{Int}
     neighs_idxs::Dict{Int, Int}
     cavs::Vector{CavityEQ}
     marg::MarginalEQ
+    sumC::OffsetVector{Float64, Vector{Float64}}
+    sumdiffC::OffsetVector{Float64, Vector{Float64}}
     """
         NodeEQ(i, neighs, T)
 
@@ -406,6 +422,8 @@ struct NodeEQ
         neighs_idxs = Dict{Int, Int}(neighs[j] => j for j in 1:length(neighs))
         cavs = [CavityEQ(i, neighs[j], T) for j in 1:length(neighs)]
         margs = MarginalEQ(i, T)
-        new(i, neighs, neighs_idxs, cavs, margs)
+        sumC = OffsetVector(zeros(T), 0:T-1)
+        sumdiffC = OffsetVector(zeros(T-1), 0:T-2)
+        new(i, neighs, neighs_idxs, cavs, margs, sumC, sumdiffC)
     end
 end
