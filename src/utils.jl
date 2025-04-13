@@ -1,9 +1,9 @@
-lagmax(T::Int) = min(T-1, round(Int,T * 0.98))
+lagmax(T::Int) = min(T-1, round(Int,T * 0.99))
 function demean_ts!(z::AbstractVector{Tx}, X::AbstractMatrix{Tx}, i::Int, mean_traj::AbstractVector{Tx}) where Tx<:Real
     z .= view(X, i, :) .- mean_traj
 end
 _autodot(x::AbstractVector{<:Real}, lx::Int, l::Int) = dot(x, 1:lx-l, x, 1+l:lx)
-function autocorr(X::Matrix{Tx}, lags::AbstractVector{<:Integer}) where Tx<:Real
+function autocorr_TTI(X::Matrix{Tx}, lags::AbstractVector{<:Integer}) where Tx<:Real
     N, T = size(X) # number of time series and length of each time series
     m = length(lags) # number of lags
     r = zeros(Tx, N, m) # autocorrelation matrix
@@ -239,7 +239,7 @@ function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=noth
     L_eff = length(l_idx)
 
     # Compute the autocorrelation at different lags for each node and simulation
-    autocorr_all = autocorr(view(trajs,:,teq:T), l_idx)
+    autocorr_all = autocorr_TTI(view(trajs,:,teq:T), l_idx)
     # Average over nodes and simulations and estimate error
     autocorr = mean(autocorr_all; dims=1)
     std_autocorr = std(view(trajs,:,teq:T); dims=1, mean=autocorr, corrected=true)
@@ -315,7 +315,7 @@ function compute_autocorr_TTI(sim::Vector{Matrix{Float64}}, teq::Int; lag_indice
     end
 
     # Compute the autocorrelation at different lags for each node and simulation
-    autocorr_all = autocor(sim_flattened, l_idx)
+    autocorr_all = autocorr_TTI(sim_flattened, l_idx)
     # Average over nodes and simulations and estimate error
     autocorr = mean(autocorr_all; dims=1)
     std_autocorr = std(autocorr_all; dims=1, mean=autocorr, corrected=true)

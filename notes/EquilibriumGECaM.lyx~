@@ -439,9 +439,9 @@ nolink "false"
 \lang american
 \begin_inset Formula 
 \begin{align}
-C_{i\setminus j}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i\setminus j}^{eq,0}\nonumber \\
+C_{i\setminus j}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}+\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i\setminus j}^{eq,0}\nonumber \\
  & \quad-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\sum_{m=0}^{n-1}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right)C_{i\setminus j}^{eq,n-m}.\\
- & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\frac{C_{i\setminus j}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
+ & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}+\Delta\frac{C_{i\setminus j}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
  & \quad-\Delta\sum_{m=0}^{n-1}\frac{C_{i\setminus j}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right).\label{eq:Ccav_eq_discrete}
 \end{align}
 
@@ -461,7 +461,7 @@ while for the full correlation we obtain
 \lang american
 \begin_inset Formula 
 \begin{align}
-C_{i}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{eq,n}-\Delta\frac{C_{i}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
+C_{i}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{eq,n}+\Delta\frac{C_{i}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
  & \quad-\Delta\sum_{m=0}^{n-1}\frac{C_{i}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m+1}-C_{k\setminus i}^{eq,m}\right).\label{eq:Cfull_eq_discrete}
 \end{align}
 
@@ -471,18 +471,6 @@ C_{i}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{eq,n}-\Delta\frac{C_{i}
 \end_layout
 
 \begin_layout Standard
-
-\lang american
-\begin_inset Formula 
-\begin{align}
-C_{i\setminus j}^{eq,n+1} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}C_{k\setminus i}^{{\rm eq,n}}C_{i\setminus j}^{eq,0}\nonumber \\
- & \quad-\Delta\sum_{k\in\partial i\setminus j}\frac{J_{ik}^{2}}{D}\sum_{m=1}^{n}\left(C_{k\setminus i}^{eq,m}-C_{k\setminus i}^{eq,m-1}\right)C_{i\setminus j}^{eq,n-m}.\\
- & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{eq,n}-\Delta\frac{C_{i\setminus j}^{eq,0}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{{\rm eq,n}}\nonumber \\
- & \quad-\Delta\sum_{m=1}^{n}\frac{C_{i\setminus j}^{eq,n-m}}{D}\sum_{k\in\partial i\setminus j}J_{ik}^{2}\left(C_{k\setminus i}^{eq,m}-C_{k\setminus i}^{eq,m-1}\right).\label{eq:Ccav_eq_discrete-1}
-\end{align}
-
-\end_inset
-
 
 \end_layout
 
