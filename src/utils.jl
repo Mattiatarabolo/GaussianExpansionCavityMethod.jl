@@ -1,4 +1,5 @@
 lagmax(T::Int) = min(T-1, round(Int,T * 0.99))
+
 function demean_ts!(z::AbstractVector{Tx}, X::AbstractMatrix{Tx}, i::Int, mean_traj::AbstractVector{Tx}) where Tx<:Real
     z .= view(X, i, :) .- mean_traj
 end
@@ -75,7 +76,7 @@ function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, A
         t_idx = 1:T
     else
         t_idx = filter(t -> 1 ≤ t ≤ T, time_indices)
-    end
+    end   
     T_eff = length(t_idx)
     # Compute the autocorrelation at different times
     autocorr = cov(view(trajs, :, t_idx); dims=1) # Covariance matrix
@@ -234,7 +235,7 @@ function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=noth
     if lag_indices === nothing
         l_idx = 0:lagmax(T-teq+1)
     else
-        l_idx = filter(l -> 1 ≤ l ≤ lagmax(T-teq+1), lag_indices)
+        l_idx = filter(l -> 0 ≤ l ≤ lagmax(T-teq+1), lag_indices)
     end
     L_eff = length(l_idx)
 
@@ -304,7 +305,7 @@ function compute_autocorr_TTI(sim::Vector{Matrix{Float64}}, teq::Int; lag_indice
     if lag_indices === nothing
         l_idx = 0:lagmax(T-teq+1)
     else
-        l_idx = filter(l -> 1 ≤ l ≤ lagmax(T-teq+1), lag_indices)
+        l_idx = filter(l -> 0 ≤ l ≤ lagmax(T-teq+1), lag_indices)
     end
     L_eff = length(l_idx)
 
