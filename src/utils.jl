@@ -229,7 +229,7 @@ Compute the average autocorrelation of the trajectories in the stationary phase,
 - `l_idx::Vector{Int}`: The lag indices used to compute the autocorrelation.
 """
 function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=nothing)
-    N, T = size(strajs)    
+    N, T = size(trajs)    
     
     # Filter lags
     if lag_indices === nothing
@@ -240,10 +240,10 @@ function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=noth
     L_eff = length(l_idx)
 
     # Compute the autocorrelation at different lags for each node and simulation
-    autocorr_all = autocorr_TTI(view(trajs,:,teq:T), l_idx)
+    autocorr_all = autocorr_TTI(trajs[:,teq:T], l_idx)
     # Average over nodes and simulations and estimate error
     autocorr = mean(autocorr_all; dims=1)
-    std_autocorr = std(view(trajs,:,teq:T); dims=1, mean=autocorr, corrected=true)
+    std_autocorr = std(autocorr_all; dims=1, mean=autocorr, corrected=true)
     err_autocorr = std_autocorr ./ sqrt(N)
     # Reshape autocorr and err_autocorr to be vectors
     autocorr = reshape(autocorr, L_eff)

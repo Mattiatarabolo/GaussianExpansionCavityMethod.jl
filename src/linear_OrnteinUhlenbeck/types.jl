@@ -421,9 +421,9 @@ mutable struct NodeEQ
     function NodeEQ(i::Int, neighs::Vector{Int}, T::Int)
         neighs_idxs = Dict{Int, Int}(neighs[j] => j for j in 1:length(neighs))
         cavs = [CavityEQ(i, neighs[j], T) for j in 1:length(neighs)]
-        margs = MarginalEQ(i, T)
+        marg = MarginalEQ(i, T)
         sumC = OffsetVector(zeros(T), 0:T-1)
         sumdiffC = OffsetVector(zeros(T-1), 0:T-2)
-        new(i, neighs, neighs_idxs, cavs, margs, sumC, sumdiffC)
+        new(i, neighs, neighs_idxs, cavs, marg, sumC, sumdiffC)
     end
 end
