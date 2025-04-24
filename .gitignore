@@ -68,3 +68,7 @@ examples/linear_OrnteinUhlenbeck/Ceq_RCM_Ferro_N-500_K-7.0_alpha-2.5_lam-3.0_D-1
 examples/linear_OrnteinUhlenbeck/Ceq_RCM_Ferro_N-1000_K-8.0_alpha-2.7_lam-5.0_D-1.0_J-1.0.png
 examples/linear_OrnteinUhlenbeck/data/RCM_Ferro/N-200_K-7.0_lam-3.0_D-1.0_J-1_tmax-500.0_nsim-100_teq-450.0.jld2
 examples/linear_OrnteinUhlenbeck/data/RCM_Ferro/N-1000_K-8.0_lam-5.0_D-1.0_J-1_tmax-500.0_nsim-100_teq-450.0.jld2
+notes/#GECaM_numerical.lyx#
+notes/EquilibriumGECaM.lyx~
+notes/GECaM_numerical.lyx~
+notes/EquilibriumGECaM.lyx~
