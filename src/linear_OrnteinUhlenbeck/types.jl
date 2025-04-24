@@ -263,6 +263,9 @@ A structure representing a node in a graph with its neighbors and associated cav
 - `neighs::Vector{Int}`: The indices of the neighbors.
 - `cavs::Vector{Cavity}`: The cavities associated with the node.
 - `marg::Marginal`: The marginal associated with the node.
+- `summu::OffsetVector{Float64, Vector{Float64}}`: Internal variable.
+- `sumC::OffsetMatrix{Float64, Matrix{Float64}}`: Internal variable.
+- `sumR::OffsetMatrix{Float64, Matrix{Float64}}`: Internal variable.
 
 # Description
 The `Node` structure represents a node in a graph, along with its neighbors and associated cavities and marginal. Each node has an index `i`, a vector of neighbor indices `neighs`, a vector of cavities `cavs` and a marginal `marg`.
@@ -275,6 +278,9 @@ struct Node
     neighs::Vector{Int}
     cavs::Vector{Cavity}
     marg::Marginal
+    summu::OffsetVector{Float64, Vector{Float64}}
+    sumC::OffsetMatrix{Float64, Matrix{Float64}}
+    sumR::OffsetMatrix{Float64, Matrix{Float64}}
     """
         Node(i, neighs, T)
 
@@ -291,7 +297,10 @@ struct Node
     function Node(i::Int, neighs::Vector{Int}, T::Int)
         cavs = [Cavity(i, neighs[j], T) for j in 1:length(neighs)]
         margs = Marginal(i, T)
-        new(i, neighs, cavs, margs)
+        summu = OffsetVector(zeros(T), 0:T-1)
+        sumC = OffsetMatrix(zeros(T, T), 0:T-1, 0:T-1)
+        sumR = OffsetMatrix(zeros(T, T-1), 0:T-1, 0:T-2)
+        new(i, neighs, cavs, margs, summu, sumC, sumR)
     end
 end
 

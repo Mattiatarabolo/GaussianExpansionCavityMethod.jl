@@ -411,7 +411,7 @@ nolink "false"
 
 .
  Within this discretization the equilibrium correlation function becomes a time vector with 
-\begin_inset Formula $T$
+\begin_inset Formula $T+1$
 \end_inset
 
  components 

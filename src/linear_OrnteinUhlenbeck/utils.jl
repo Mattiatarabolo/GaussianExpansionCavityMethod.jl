@@ -37,3 +37,14 @@ function compute_averages(nodes::Vector{NodeEQ}, model::OUModel, T::Int)
     # Return the averages
     return C_avg, R_avg
 end
+
+
+function init_nodes(model::OUModel, T::Int)
+    # Initialize nodes
+    nodes = Vector{Node}(undef, model.N)
+    @inbounds for i in 1:model.N
+        neighs = findall(x -> x ≠ 0, view(model.J, i, :))
+        nodes[i] = Node(i, neighs, T)
+    end
+    return nodes
+end

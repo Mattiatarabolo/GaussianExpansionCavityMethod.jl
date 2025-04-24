@@ -1,0 +1,262 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children no
+\language italian
+\language_package default
+\inputencoding utf8
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement class
+\float_alignment class
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content true
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\lang american
+GECaM equations:
+ algorithmic implementation
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+We consider the GECaM equations for a linearly-coupled system of Langevin equations with additive noise,
+ i.e.
+ a system of linearly interacting Ornstein-Uhlenbeck processes.
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\frac{d}{dt}\mu_{i\setminus j}(t) & =-\lambda_{i}\mu_{i\setminus j}(t)+\sum_{k\in\partial i\setminus j}J_{ik}\mu_{k\setminus i}(t)+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}\mu_{i\setminus j}(s),\label{eq:mucav_GECaM}\\
+\frac{\partial}{\partial t}R_{i\setminus j}(t,t') & =-\lambda_{i}R_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{t'}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}R_{i\setminus j}(s,t')+\delta(t-t'),\label{eq:Rcav_GECaM}\\
+\frac{\partial}{\partial t}C_{i\setminus j}(t,t') & =-\lambda_{i}C_{i\setminus j}(t,t')+\sum_{k\in\partial i\setminus j}\int_{0}^{t}dsJ_{ik}R_{k\setminus i}(t,s)J_{ki}C_{i\setminus j}(s,t')+2DR_{i\setminus j}(t',t)\nonumber \\
+ & \quad+\sum_{k\in\partial i\setminus j}\int_{0}^{t'}dsR_{i\setminus j}(t',s)J_{ik}^{2}C_{k\setminus i}(t,s).\label{eq:Ccav_GECaM}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+
+\lang american
+Numerical solution
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+A numerical solution of Eqs.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:mucav_GECaM"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:Rcav_GECaM"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:Ccav_GECaM"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ can be found by discretizing time with a timestep 
+\begin_inset Formula $\Delta$
+\end_inset
+
+,
+ i.e.
+ 
+\begin_inset Formula $t=n\Delta$
+\end_inset
+
+,
+ 
+\begin_inset Formula $n=0,\dots,T$
+\end_inset
+
+ with 
+\begin_inset Formula $T=\mathcal{T}/\Delta$
+\end_inset
+
+.
+ Within this discretization the cavity means become a time vector with 
+\begin_inset Formula $T$
+\end_inset
+
+ components 
+\begin_inset Formula $\mu_{i\setminus j}^{n}=\mu_{i\setminus j}(t=n\Delta)$
+\end_inset
+
+,
+ and the cavity correlation and response functions become time matrices with 
+\begin_inset Formula $(T+1)\times(T+1)$
+\end_inset
+
+ components 
+\begin_inset Formula $C_{i\setminus j}^{n,n'}=C_{i\setminus j}(t=n\Delta,t'=n'\Delta)$
+\end_inset
+
+ and 
+\begin_inset Formula $R_{i\setminus j}^{n,n'}=R_{i\setminus j}(t=n\Delta,t'=n'\Delta)$
+\end_inset
+
+.
+ Then a discretized version of GECaM equations is
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\mu_{i\setminus j}^{n+1} & =\left(1-\lambda_{i}\Delta\right)\mu_{i\setminus j}^{n}+\Delta\sum_{k\in\partial i\setminus j}J_{ik}\mu_{k\setminus i}^{n}+\Delta^{2}\sum_{m=0}^{n-1}\mu_{i\setminus j}^{m}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:mucav_GECaM_num}\\
+R_{i\setminus j}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)R_{i\setminus j}^{n,n'}+\Delta\delta_{n,n'}+\Delta^{2}\sum_{m=n'+1}^{n-1}R_{i\setminus j}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:Rcav_GECaM_num}\\
+C_{i\setminus j}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{n,n'}+2\Delta DR_{i\setminus j}^{n',n}+\Delta^{2}\sum_{m=0}^{n-1}C_{i\setminus j}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\nonumber \\
+ & \quad+\Delta^{2}\sum_{m=0}^{n'-1}R_{i\setminus j}^{n',m}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{n,m}\label{eq:Ccav_GECaM_num}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+where 
+\begin_inset Formula $R_{i\setminus j}^{n,n}=0$
+\end_inset
+
+ due to causality and 
+\begin_inset Formula $C_{i\setminus j}^{n,n'}=C_{i\setminus j}^{n',n}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+The full marginals can be obtained as
+\end_layout
+
+\begin_layout Standard
+
+\lang american
+\begin_inset Formula 
+\begin{align}
+\mu_{i}^{n+1} & =\left(1-\lambda_{i}\Delta\right)\mu_{i}^{n}+\Delta\sum_{k\in\partial i}J_{ik}\mu_{k\setminus i}^{n}+\Delta^{2}\sum_{m=0}^{n-1}\mu_{i}^{m}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:mucav_GECaM_num-1}\\
+R_{i}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)R_{i}^{n,n'}+\Delta\delta_{n,n'}+\Delta^{2}\sum_{m=n'+1}^{n-1}R_{i}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:Rcav_GECaM_num-1}\\
+C_{i}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{n,n'}+2\Delta DR_{i}^{n',n}+\Delta^{2}\sum_{m=0}^{n-1}C_{i}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\nonumber \\
+ & \quad+\Delta^{2}\sum_{m=0}^{n'-1}R_{i}^{n',m}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{n,m}\label{eq:Ccav_GECaM_num-1}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
