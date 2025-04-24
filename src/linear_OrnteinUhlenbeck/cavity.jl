@@ -195,13 +195,13 @@ function compute_C_R_integrals(inode::Node, jnode::Node, model::OUModel, n::Int,
     # m = 0:l-1 (add terms only to int2 and int3)
     int1, int2, int3 = 0.0, 0.0, 0.0
     # m = 0:l (add terms only to int2 and int3)
-    @inounds @fastmath @simd for m in 0:l
+    @inbounds @fastmath @simd for m in 0:l
         int2 += jnode.cavs[iidx].C[l,m] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])
         int3 += jnode.cavs[iidx].R[l,m] * (inode.sumC[n,m] - Jij ^ 2 * inode.cavs[jidx].C[n,m])
         next!(p)
     end
     # m = l+1:n-1 (add terms only to int1 and int2)
-    @inounds @fastmath @simd for m in l+1:n-1
+    @inbounds @fastmath @simd for m in l+1:n-1
         int1 += jnode.cavs[iidx].R[m,l] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])
         int2 += jnode.cavs[iidx].C[m,l] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])
         next!(p)
@@ -243,7 +243,7 @@ function compute_C_mu_integrals(inode::Node, jnode::Node, model::OUModel, n::Int
     Jij, Jji = model.J[i, j], model.J[j, i]
     # Iterate over integral indices, but split in ordere to avoid double counting. We can split the loops from 0 to n-1 (int1 and int2 completed), then add the term corresponding to m = n (only to int3, int3 completed)
     # m = 0:n-1
-    @inounds @fastmath @simd for m in 0:n-1
+    @inbounds @fastmath @simd for m in 0:n-1
         int1 += jnode.cavs[iidx].mu[m] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])    
         int2 += jnode.cavs[iidx].C[n+1,m] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])
         int3 += inode.cavs[jidx].R[n+1,m] * (inode.sumC[n,m] - Jij ^ 2 * inode.cavs[jidx].C[n,m])
@@ -309,13 +309,13 @@ function compute_C_R_integrals(inode::Node, n::Int, l::Int, p)
     # m = 0:l-1 (add terms only to int2 and int3)
     int1, int2, int3 = 0.0, 0.0, 0.0
     # m = 0:l (add terms only to int2 and int3)
-    @inounds @fastmath @simd for m in 0:l
+    @inbounds @fastmath @simd for m in 0:l
         int2 += inode.marg.C[l,m] * inode.sumR[n,m]
         int3 += inode.marg.R[l,m] * inode.sumC[n,m]
         next!(p)
     end
     # m = l+1:n-1 (add terms only to int1 and int2)
-    @inounds @fastmath @simd for m in l+1:n-1
+    @inbounds @fastmath @simd for m in l+1:n-1
         int1 += inode.marg.R[m,l] * inode.sumR[n,m]
         int2 += inode.marg.C[m,l] * inode.sumR[n,m]
         next!(p)
@@ -337,7 +337,7 @@ end
 function compute_C_mu_integrals(inode::Node, n::Int, p)
     # Iterate over integral indices, but split in ordere to avoid double counting. We can split the loops from 0 to n-1 (int1 and int2 completed), then add the term corresponding to m = n (only to int3, int3 completed)
     # m = 0:n-1
-    @inounds @fastmath @simd for m in 0:n-1
+    @inbounds @fastmath @simd for m in 0:n-1
         int1 += inode.marg.mu[m] * inode.sumR[n,m]
         int2 += inode.marg.C[n+1,m] * inode.sumR[n,m]
         int3 += inode.marg.R[n+1,m] * inode.sumC[n,m]
