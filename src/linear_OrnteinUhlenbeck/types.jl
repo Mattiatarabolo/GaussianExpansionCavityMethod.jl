@@ -261,6 +261,7 @@ A structure representing a node in a graph with its neighbors and associated cav
 # Fields
 - `i::Int`: The index of the node.
 - `neighs::Vector{Int}`: The indices of the neighbors.
+- `neighs_idxs::Dict{Int, Int}`: A dictionary mapping neighbor indices to their positions in the `neighs` vector.
 - `cavs::Vector{Cavity}`: The cavities associated with the node.
 - `marg::Marginal`: The marginal associated with the node.
 - `summu::OffsetVector{Float64, Vector{Float64}}`: Internal variable.
@@ -276,6 +277,7 @@ The `Node` structure represents a node in a graph, along with its neighbors and 
 struct Node
     i::Int
     neighs::Vector{Int}
+    neighs_idxs::Dict{Int, Int}
     cavs::Vector{Cavity}
     marg::Marginal
     summu::OffsetVector{Float64, Vector{Float64}}
@@ -295,12 +297,13 @@ struct Node
     - `Node`: The constructed node.
     """
     function Node(i::Int, neighs::Vector{Int}, T::Int)
+        neighs_idxs = Dict{Int, Int}(neighs[j] => j for j in 1:length(neighs))
         cavs = [Cavity(i, neighs[j], T) for j in 1:length(neighs)]
         margs = Marginal(i, T)
         summu = OffsetVector(zeros(T), 0:T-1)
         sumC = OffsetMatrix(zeros(T, T), 0:T-1, 0:T-1)
         sumR = OffsetMatrix(zeros(T, T-1), 0:T-1, 0:T-2)
-        new(i, neighs, cavs, margs, summu, sumC, sumR)
+        new(i, neighs, neighs_idxs, cavs, margs, summu, sumC, sumR)
     end
 end
 

@@ -243,6 +243,7 @@ function compute_C_mu_integrals(inode::Node, jnode::Node, model::OUModel, n::Int
     Jij, Jji = model.J[i, j], model.J[j, i]
     # Iterate over integral indices, but split in ordere to avoid double counting. We can split the loops from 0 to n-1 (int1 and int2 completed), then add the term corresponding to m = n (only to int3, int3 completed)
     # m = 0:n-1
+    int1, int2, int3 = 0.0, 0.0, 0.0
     @inbounds @fastmath @simd for m in 0:n-1
         int1 += jnode.cavs[iidx].mu[m] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])    
         int2 += jnode.cavs[iidx].C[n+1,m] * (inode.sumR[n,m] - Jij * Jji * inode.cavs[jidx].R[n,m])
@@ -325,6 +326,7 @@ end
 
 function update_C_R_marg!(inode::Node, model::OUModel, dt::Float64, n::Int, l::Int, p)
     # Unpack parameters
+    i = inode.i
     lambda = model.lambdas[i]
     # Compute integrals
     int1, int2, int3 = compute_C_R_integrals(inode, n, l, p)
@@ -336,6 +338,7 @@ end
 
 function compute_C_mu_integrals(inode::Node, n::Int, p)
     # Iterate over integral indices, but split in ordere to avoid double counting. We can split the loops from 0 to n-1 (int1 and int2 completed), then add the term corresponding to m = n (only to int3, int3 completed)
+    int1, int2, int3 = 0.0, 0.0, 0.0
     # m = 0:n-1
     @inbounds @fastmath @simd for m in 0:n-1
         int1 += inode.marg.mu[m] * inode.sumR[n,m]
@@ -344,7 +347,7 @@ function compute_C_mu_integrals(inode::Node, n::Int, p)
         next!(p)
     end
     # m = n (add terms only to int3)
-    int3 += inode.marg..R[n+1,n] * inode.sumC[n,n]
+    int3 += inode.marg.R[n+1,n] * inode.sumC[n,n]
     return int1, int2, int3
 end
 
@@ -378,7 +381,26 @@ function marginal_update!(nodes::Vector{Node}, model::OUModel, dt::Float64, T::I
     end
     finish!(p)
 end
-function run_cavity(model::OUModel, dt::Float64, T::Int; C0=1.0, mu0=0.0, showprogress=false)
+
+"""
+    run_cavity(model, dt, T; C0=1.0, mu0=0.0, showprogress=false)
+
+Run the cavity method for the Ornstein-Uhlenbeck model.
+
+# Arguments
+- `model::OUModel`: The Ornstein-Uhlenbeck model.
+- `dt::Float64`: The time step size.
+- `T::Int`: The number of time steps.
+
+# Keyword Arguments
+- `mu0::Float64`: The initial value of the cavity marginal field (default is 0.0).  
+- `C0::Float64`: The initial value of the cavity autocorrelation (default is 1.0).
+- `showprogress::Bool`: Whether to show progress bars (default is false).
+
+# Returns
+- `nodes::Vector{Node}`: The updated nodes after running the cavity method, containing the cavity autocorrelations and the marginal fields.
+"""
+function run_cavity(model::OUModel, dt::Float64, T::Int; C0=1.0, mu0=1.0, showprogress=false)
     # Initialize nodes
     nodes = init_nodes(model, T)
     @inbounds @fastmath for inode in nodes

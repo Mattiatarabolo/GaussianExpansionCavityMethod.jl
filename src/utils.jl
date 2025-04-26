@@ -20,6 +20,36 @@ function autocorr_TTI(X::Matrix{Tx}, lags::AbstractVector{<:Integer}) where Tx<:
     return r
 end
 
+function _autocorr(X::Matrix{Tx}; dims=1) where Tx<:Real
+    if dims == 1
+        N, T = size(X) # number of time series and length of each time series
+        C = zeros(Tx, T, T) # autocorrelation matrix
+        for t1 in 1:T # loop over each time series, i.e. over rows
+            for t2 in 1:t1 # loop over each lag
+                for n in 1:N
+                    C[t1, t2] += X[n, t1] * X[n, t2]
+                end
+                C[t1, t2] /= N
+            end
+        end
+        return C
+    elseif dims == 2
+        T, N = size(X) # number of time series and length of each time series
+        C = zeros(Tx, T, T) # autocorrelation matrix
+        for t1 in 1:T # loop over each time series, i.e. over rows
+            for t2 in 1:t1 # loop over each lag
+                for n in 1:N
+                    C[t1, t2] += X[t1, n] * X[t2, n]
+                end
+                C[t1, t2] /= N
+            end
+        end
+        return C
+    else
+        throw(ArgumentError("Invalid dimension: $dims"))
+    end
+end
+
 """
     compute_meanstd(trajs; time_indices=nothing)
 
@@ -79,7 +109,7 @@ function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, A
     end   
     T_eff = length(t_idx)
     # Compute the autocorrelation at different times
-    autocorr = cov(view(trajs, :, t_idx); dims=1) # Covariance matrix
+    autocorr = _autocorr(view(trajs, :, t_idx); dims=1) # Covariance matrix
     # Reshape autocorr to be a matrix
     autocorr = reshape(autocorr, T_eff, T_eff)
     return autocorr, t_idx
@@ -179,7 +209,7 @@ function compute_autocorr(sim::Vector{Matrix{Float64}}; time_indices=nothing)
         sim_flattened[(s-1)*N+1:s*N, :] .= view(sim[s], :, t_idx)
     end
     # Compute the autocorrelation at different times
-    autocorr = cov(sim_flattened; dims=1) # Covariance matrix
+    autocorr = _autocorr(sim_flattened; dims=1) # Covariance matrix
     # Reshape autocorr to be a matrix
     autocorr = reshape(autocorr, T_eff, T_eff)
     return autocorr, t_idx
