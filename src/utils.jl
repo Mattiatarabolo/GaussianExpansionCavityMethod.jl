@@ -235,7 +235,7 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 function compute_stats(sim::Vector{Matrix{Float64}}; time_indices=nothing)
     # Compute mean, standard deviation and autocorrelation
     mean_traj, std_traj, t_idxm = compute_meanstd(sim; time_indices=time_indices)
-    autocorr, t_idxC = compute_autocorrelation(sim; time_indices=time_indices)
+    autocorr, t_idxC = compute_autocorr(sim; time_indices=time_indices)
     @assert t_idxC == t_idxm "Time indices for mean/std and autocorrelation do not match"
     return mean_traj, std_traj, autocorr, t_idxC
 end

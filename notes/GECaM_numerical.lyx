@@ -212,7 +212,7 @@ nolink "false"
 \begin_inset Formula 
 \begin{align}
 \mu_{i\setminus j}^{n+1} & =\left(1-\lambda_{i}\Delta\right)\mu_{i\setminus j}^{n}+\Delta\sum_{k\in\partial i\setminus j}J_{ik}\mu_{k\setminus i}^{n}+\Delta^{2}\sum_{m=0}^{n-1}\mu_{i\setminus j}^{m}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:mucav_GECaM_num}\\
-R_{i\setminus j}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)R_{i\setminus j}^{n,n'}+\Delta\delta_{n,n'}+\Delta^{2}\sum_{m=n'+1}^{n-1}R_{i\setminus j}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:Rcav_GECaM_num}\\
+R_{i\setminus j}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)R_{i\setminus j}^{n,n'}+\delta_{n,n'}+\Delta^{2}\sum_{m=n'+1}^{n-1}R_{i\setminus j}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:Rcav_GECaM_num}\\
 C_{i\setminus j}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)C_{i\setminus j}^{n,n'}+2\Delta DR_{i\setminus j}^{n',n}+\Delta^{2}\sum_{m=0}^{n-1}C_{i\setminus j}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\nonumber \\
  & \quad+\Delta^{2}\sum_{m=0}^{n'-1}R_{i\setminus j}^{n',m}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{n,m}\label{eq:Ccav_GECaM_num}
 \end{align}
@@ -248,7 +248,7 @@ The full marginals can be obtained as
 \begin_inset Formula 
 \begin{align}
 \mu_{i}^{n+1} & =\left(1-\lambda_{i}\Delta\right)\mu_{i}^{n}+\Delta\sum_{k\in\partial i}J_{ik}\mu_{k\setminus i}^{n}+\Delta^{2}\sum_{m=0}^{n-1}\mu_{i}^{m}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:mucav_GECaM_num-1}\\
-R_{i}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)R_{i}^{n,n'}+\Delta\delta_{n,n'}+\Delta^{2}\sum_{m=n'+1}^{n-1}R_{i}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:Rcav_GECaM_num-1}\\
+R_{i}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)R_{i}^{n,n'}+\delta_{n,n'}+\Delta^{2}\sum_{m=n'+1}^{n-1}R_{i}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\label{eq:Rcav_GECaM_num-1}\\
 C_{i}^{n+1,n'} & =\left(1-\lambda_{i}\Delta\right)C_{i}^{n,n'}+2\Delta DR_{i}^{n',n}+\Delta^{2}\sum_{m=0}^{n-1}C_{i}^{m,n'}\sum_{k\in\partial i\setminus j}J_{ik}J_{ki}R_{k\setminus i}^{n,m}\nonumber \\
  & \quad+\Delta^{2}\sum_{m=0}^{n'-1}R_{i}^{n',m}\sum_{k\in\partial i\setminus j}J_{ik}^{2}C_{k\setminus i}^{n,m}\label{eq:Ccav_GECaM_num-1}
 \end{align}

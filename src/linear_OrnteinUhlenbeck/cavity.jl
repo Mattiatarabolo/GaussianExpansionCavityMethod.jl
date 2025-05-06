@@ -219,22 +219,16 @@ function update_C_R_cav!(inode::Node, nodes::Vector{Node}, model::OUModel, dt::F
         # Compute integrals
         int1, int2, int3 = compute_C_R_integrals(inode, nodes[j], model, n, l, p)
         # Update the cavity response at times n+1, l 
-        nodes[j].cavs[iindex].R[n+1,l] = (1 - lambda * dt) * nodes[j].cavs[iindex].R[n,l] + dt * (n == l) + dt ^ 2 * int1
+        nodes[j].cavs[iindex].R[n+1,l] = (1 - lambda * dt) * nodes[j].cavs[iindex].R[n,l] + (n == l) + dt ^ 2 * int1
+        # Sum term into the sumR of node j
+        nodes[j].sumR[n+1,l] += model.J[j, i] * model.J[i, j] * nodes[j].cavs[iindex].R[n+1,l]
         # Update the cavity correlation at times n+1, l 
         nodes[j].cavs[iindex].C[n+1,l] = (1 - lambda * dt) * nodes[j].cavs[iindex].C[n,l] + dt ^ 2 * int2 + dt ^ 2 * int3
+        # Sum term into the sumC of node j
+        nodes[j].sumC[n+1,l] += model.J[j, i] ^ 2 * nodes[j].cavs[iindex].C[n+1,l]
     end
 end
 
-function update_C_R_sums!(inode::Node, model::OUModel, n, l, p)
-    # Unpack parameters
-    i = inode.i
-    # Iterate over neighbors
-    @inbounds @fastmath for (jidx, cav) in enumerate(inode.cavs)
-        inode.sumR[n,l] += model.J[i, inode.neighs[jidx]] * model.J[inode.neighs[jidx], i] * cav.R[n,l]
-        inode.sumC[n,l] += model.J[i, inode.neighs[jidx]] ^ 2 * cav.C[n,l]
-        next!(p)
-    end
-end
 
 function compute_C_mu_integrals(inode::Node, jnode::Node, model::OUModel, n::Int, p)
     # Unpack parameters
@@ -267,19 +261,12 @@ function update_C_mu_cav!(inode::Node, nodes::Vector{Node}, model::OUModel, dt::
         int1, int2, int3 = compute_C_mu_integrals(inode, nodes[j], model, n, p)
         # Update the cavity correlation at times n+1, n+1 
         nodes[j].cavs[iindex].C[n+1,n+1] = (1 - lambda * dt) * nodes[j].cavs[iindex].C[n+1,n] + 2 * dt * D * nodes[j].cavs[iindex].R[n+1,n] + dt ^ 2 * int2 + dt ^ 2 * int3
+        # Sum term into the sumC of node j
+        nodes[j].sumC[n+1,n+1] += model.J[j, i] ^ 2 * nodes[j].cavs[iindex].C[n+1,n+1]
         # Update the cavity marginal at time n+1
         nodes[j].cavs[iindex].mu[n+1] = (1 - lambda * dt) * nodes[j].cavs[iindex].mu[n] + dt * (inode.summu[n] - model.J[i, j] * inode.cavs[jindex].mu[n]) + dt ^ 2 * int1
-    end
-end
-
-function update_C_mu_sums!(inode::Node, model::OUModel, n::Int, p)
-    # Unpack parameters
-    i = inode.i
-    # Iterate over neighbors
-    @inbounds @fastmath for (jidx, cav) in enumerate(inode.cavs)
-        inode.summu[n+1] += model.J[i, inode.neighs[jidx]] * cav.mu[n+1]
-        inode.sumC[n+1,n+1] += model.J[i, inode.neighs[jidx]] ^ 2 * cav.C[n+1,n+1]
-        next!(p)
+        # Sum term into the summu of node j
+        nodes[j].summu[n+1] += model.J[j, i] * nodes[j].cavs[iindex].mu[n+1]
     end
 end
 
@@ -291,15 +278,11 @@ function cavity_update!(nodes::Vector{Node}, model::OUModel, dt::Float64, T::Int
             @inbounds @fastmath for inode in nodes  
                 # Update the cavity correlations and responses
                 update_C_R_cav!(inode, nodes, model, dt, n, l, p)
-                # Update the sums of correlations and responses
-                update_C_R_sums!(inode, model, n+1, l, p)
             end
         end
         # Update the cavity correlations at times n+1, n+1 and the marginal at time n+1
         @inbounds @fastmath for inode in nodes
             update_C_mu_cav!(inode, nodes, model, dt, n, p)
-            # Updated the sums of correlations at times n+1, n+1 and of marhinals at time n+1
-            update_C_mu_sums!(inode, model, n+1, p)
         end
     end
     finish!(p)
@@ -331,7 +314,7 @@ function update_C_R_marg!(inode::Node, model::OUModel, dt::Float64, n::Int, l::I
     # Compute integrals
     int1, int2, int3 = compute_C_R_integrals(inode, n, l, p)
     # Update the marginal response at times n+1, l 
-    inode.marg.R[n+1,l] = (1 - lambda * dt) * inode.marg.R[n,l] + dt * (n == l) + dt ^ 2 * int1
+    inode.marg.R[n+1,l] = (1 - lambda * dt) * inode.marg.R[n,l] + (n == l) + dt ^ 2 * int1
     # Update the marginal correlation at times n+1, l 
     inode.marg.C[n+1,l] = (1 - lambda * dt) * inode.marg.C[n,l] + dt ^ 2 * int2 + dt ^ 2 * int3
 end
@@ -407,15 +390,15 @@ function run_cavity(model::OUModel, dt::Float64, T::Int; C0=1.0, mu0=1.0, showpr
         @inbounds @fastmath for (jidx, cav) in enumerate(inode.cavs)
             cav.C[0,0] = C0
             cav.mu[0] = mu0
-            inode.summu[0] += model.J[inode.i, inode.neighs[jidx]] * mu0
-            inode.sumC[0,0] += model.J[inode.i, inode.neighs[jidx]] ^ 2 * C0
+            inode.summu[0] += model.J[inode.i, inode.neighs[jidx]] * cav.mu[0]
+            inode.sumC[0,0] += model.J[inode.i, inode.neighs[jidx]] ^ 2 * cav.C[0,0]
         end
         inode.marg.C[0,0] = C0
         inode.marg.mu[0] = mu0
     end
     # Initialize progress bar for the cavity updates
     nedges = sum(model.J .!= 0)
-    pc_tot_iterations = nedges * Int(T * (T - 1) * (2 * T -1) / 6 + 3 * T * (T - 1) / 2 + 3 * T)
+    pc_tot_iterations = nedges * Int(T * (T - 1) * (2 * T -1) / 6 + T * (T - 1) / 2 + T)
     pc = Progress(pc_tot_iterations; enabled=showprogress, dt=0.3, showspeed=true, desc="Cavity update: ")
     # Run the cavity method
     cavity_update!(nodes, model, dt, T, pc)

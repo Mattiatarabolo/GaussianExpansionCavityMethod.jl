@@ -2,6 +2,7 @@
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 GaussianExpansionCavityMethod = "e07873fc-887d-4a56-bff1-02ba28e82f55"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
