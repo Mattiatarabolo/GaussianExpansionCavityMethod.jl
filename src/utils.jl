@@ -5,6 +5,7 @@ function demean_ts!(z, X, i, mean_traj)
 end
 _autodot(x, lx, l) = dot(x, 1:lx-l, x, 1+l:lx)
 function autocorr_TTI(X, lags)
+    Tx = eltype(X)
     N, T = size(X) # number of time series and length of each time series
     m = length(lags) # number of lags
     r = zeros(Tx, N, m) # autocorrelation matrix
@@ -21,6 +22,7 @@ function autocorr_TTI(X, lags)
 end
 
 function _autocorr(X; dims=1)
+    Tx = eltype(X)
     if dims == 1
         N, T = size(X) # number of time series and length of each time series
         C = zeros(Tx, T, T) # autocorrelation matrix
