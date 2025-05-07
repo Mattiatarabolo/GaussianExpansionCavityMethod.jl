@@ -1,10 +1,10 @@
-lagmax(T::Int) = min(T-1, round(Int,T * 0.99))
+lagmax(T) = min(T-1, round(Int,T * 0.99))
 
-function demean_ts!(z::AbstractVector{Tx}, X::AbstractMatrix{Tx}, i::Int, mean_traj::AbstractVector{Tx}) where Tx<:Real
+function demean_ts!(z, X, i, mean_traj)
     z .= view(X, i, :) .- mean_traj
 end
-_autodot(x::AbstractVector{<:Real}, lx::Int, l::Int) = dot(x, 1:lx-l, x, 1+l:lx)
-function autocorr_TTI(X::Matrix{Tx}, lags::AbstractVector{<:Integer}) where Tx<:Real
+_autodot(x, lx, l) = dot(x, 1:lx-l, x, 1+l:lx)
+function autocorr_TTI(X, lags)
     N, T = size(X) # number of time series and length of each time series
     m = length(lags) # number of lags
     r = zeros(Tx, N, m) # autocorrelation matrix
@@ -20,7 +20,7 @@ function autocorr_TTI(X::Matrix{Tx}, lags::AbstractVector{<:Integer}) where Tx<:
     return r
 end
 
-function _autocorr(X::Matrix{Tx}; dims=1) where Tx<:Real
+function _autocorr(X; dims=1)
     if dims == 1
         N, T = size(X) # number of time series and length of each time series
         C = zeros(Tx, T, T) # autocorrelation matrix

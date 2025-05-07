@@ -8,21 +8,6 @@ using LaTeXStrings
 rcParams = PyDict(plt.matplotlib["rcParams"])
 rcParams["font.size"] = 8
 
-function gen_J(N, K, J_params; rng=Xoshiro(1234))
-    J = adjacency_matrix(random_regular_graph(N, K; rng=rng), Float64)
-    @inbounds @fastmath for i in 1:N
-        @inbounds @fastmath for j in i+1:N
-            if J[i, j] ≠ 0
-                Jval = J_params[1]/sqrt(K) * (rand(rng) < 0.5 ? 1 : -1)
-                J[i, j] = Jval
-                J[j, i] = Jval
-            end
-        end
-    end
-    dropzeros!(J)
-    return J
-end
-
 function run_Bim_RRG(N, K, J, D, tmax, nsim)
     rng = Xoshiro(1234)
 
@@ -41,12 +26,22 @@ function run_Bim_RRG(N, K, J, D, tmax, nsim)
     autocorr_traj, tidxs = compute_autocorr(traj_alls)
     tvec = tsave[tidxs]
 
+    # Compute autocorrelation function for 2 nodes only
+    traj_1 = zeros(nsim, length(tsave))
+    traj_2 = zeros(nsim, length(tsave))
+    @inbounds for i in 1:nsim
+        traj_1[i, :] = view(traj_alls[i], 1, :)
+        traj_2[i, :] = view(traj_alls[i], 2, :)
+    end
+    autocorr_traj_1, tidxs_1 = compute_autocorr(traj_1)
+    autocorr_traj_2, tidxs_2 = compute_autocorr(traj_2)
+
     # Save results
     isdir("data") || mkdir("data")
     isdir("data/RRG") || mkdir("data/RRG")
 
     filename = "data/RRG/Corr_N$(N)_K$(K)_J$(J)_D$(D)_tmax$(tmax)_dtMC-$(dt)_dtsave-1e-1_nsim$(nsim)_x0min-$(x0_min)_x0max-$(x0_max).jld2"
-    jldsave(filename; autocorr_traj, tsave, tidxs)
+    jldsave(filename; autocorr_traj, tsave, tidxs, autocorr_traj_1, tidxs_1, autocorr_traj_2, tidxs_2)
 
     # Plot correlations
     tws = collect(10 .^ range(log10(1.0), stop=log10(1000.0), length=10))[1:end-1]
@@ -81,11 +76,14 @@ function run_Bim_RRG(N, K, J, D, tmax, nsim)
 end
 
 N = 1000
-Ks = []
+Ks = [4, 10, 100, 999]
 J, D = 1.0, 0.3
 tmax = 6e2
 nsim = 100
-run_Bim_RRG(N, K, J, D, tmax, nsim)
+for K in Ks
+    println("Running Bim RRG with K = $K")
+    run_Bim_RRG(N, K, J, D, tmax, nsim)
+end
 
 
 function run_Ferro_RRG(N, K, J, D, tmax, nsim)
@@ -143,4 +141,15 @@ function run_Ferro_RRG(N, K, J, D, tmax, nsim)
     fig.savefig("Corr_N$(N)_K$(K)_J$(J)_D$(D)_tmax$(tmax)_dtMC-$(dt)_dtsave-1e-1_nsim$(nsim)_x0min-$(x0_min)_x0max-$(x0_max).pdf", bbox_inches="tight")
     fig.savefig("Corr_N$(N)_K$(K)_J$(J)_D$(D)_tmax$(tmax)_dtMC-$(dt)_dtsave-1e-1_nsim$(nsim)_x0min-$(x0_min)_x0max-$(x0_max).png", dpi=300, bbox_inches="tight")
     plt.close(fig)
+end
+
+N = 1000
+Ks = [4, 10, 100, 999]
+J, D = 1.0, 0.3
+tmax = 6e2
+nsim = 100
+
+for K in Ks
+    println("Running Ferro RRG with K = $K")
+    run_Ferro_RRG(N, K, J, D, tmax, nsim)
 end
