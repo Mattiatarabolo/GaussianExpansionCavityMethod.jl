@@ -117,7 +117,7 @@ Integrate the disorder averaged cavity equations for a 2-spin model on a random 
 - `Rh::OffsetArray`: The disorder averaged cavity response Rh matrix.
 - `mu::OffsetArray`: The Lagrange multiplier mu array.
 """
-function integrate_2spin_RRG(K::Int, J::Float64, D::Float64, Nmax::Int, tmax::Float64; backup=false, backupfile="backup_matrices.jld2", backupevery=1000)
+function integrate_2spin_Bim_RRG(K::Int, J::Float64, D::Float64, Nmax::Int, tmax::Float64; backup=false, backupfile="data/RRG/backup_matrices.jld2", backupevery=1000)
     # Check if parameters are valid
     @assert K > 0 "K must be positive"
     @assert J > 0 "J must be positive"

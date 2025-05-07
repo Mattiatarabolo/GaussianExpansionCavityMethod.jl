@@ -107,7 +107,7 @@ function TwoSpinModelRRG(N::Int, K::Union{Int, Float64}, pJ::Function, J_params:
 end
 
 """
-    TwoSpinModelRRG(N, K, J, lambda, D)
+    TwoSpinModelRRG_Bim(N, K, J, lambda, D)
 
 Construct a spherical 2-Spin model with a random regular graph coupling matrix with bimodal interactions.
 
@@ -120,8 +120,28 @@ Construct a spherical 2-Spin model with a random regular graph coupling matrix w
 # Returns
 - `TwoSpinModelEnsemble`: The spherical 2-Spin  model.
 """
-function TwoSpinModelRRG(N::Int, K::Union{Int, Float64}, J::Float64, D::Float64)
+function TwoSpinModelRRG_Bim(N::Int, K::Union{Int, Float64}, J::Float64, D::Float64)
     J_params = [J]
     pJ(J_params; rng=Xoshiro(1234)) = J_params[1]/sqrt(K) * (rand(rng) < 0.5 ? 1 : -1)
+    TwoSpinModelRRG(N, K, pJ, J_params, D)
+end
+
+"""
+    TwoSpinModelRRG_Ferro(N, K, J, lambda, D)
+
+Construct a spherical 2-Spin model with a random regular graph coupling matrix with ferromagnetic interactions.
+
+# Arguments
+- `N::Integer`: The number of sites.
+- `K::Union{Int, Float64}`: The average number of neighbors.
+- `J::Float64`: The coupling strength.
+- `D::Float64`: The noise strength.
+
+# Returns
+- `TwoSpinModelEnsemble`: The spherical 2-Spin  model.
+"""
+function TwoSpinModelRRG_Ferro(N::Int, K::Union{Int, Float64}, J::Float64, D::Float64)
+    J_params = [J]
+    pJ(J_params; rng=Xoshiro(1234)) = J_params[1]/K
     TwoSpinModelRRG(N, K, pJ, J_params, D)
 end

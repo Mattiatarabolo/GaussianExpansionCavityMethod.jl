@@ -5,5 +5,5 @@
 **/Manifest.toml
 /docs/build/
 **/data/
-*.lyx#
-*.lyx~
+*.lyx#*
+*.lyx~*
