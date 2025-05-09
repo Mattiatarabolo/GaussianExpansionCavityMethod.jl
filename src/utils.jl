@@ -21,15 +21,19 @@ function autocorr_TTI(X, lags)
     return r
 end
 
-function _autocorr(X; dims=1)
+function _autocorr(X; dims=1, p=nothing)
     Tx = eltype(X)
     if dims == 1
         N, T = size(X) # number of time series and length of each time series
         C = zeros(Tx, T, T) # autocorrelation matrix
-        for t1 in 1:T # loop over each time series, i.e. over rows
-            for t2 in 1:t1 # loop over each lag
-                for n in 1:N
+        @inbounds @fastmath for t1 in 1:T # loop over each time series, i.e. over rows
+            @inbounds @fastmath for t2 in 1:t1 # loop over each lag
+                @inbounds @fastmath @simd for n in 1:N
                     C[t1, t2] += X[n, t1] * X[n, t2]
+                    # update progress bar
+                    if p !== nothing
+                        next!(p)
+                    end
                 end
                 C[t1, t2] /= N
             end
@@ -38,10 +42,14 @@ function _autocorr(X; dims=1)
     elseif dims == 2
         T, N = size(X) # number of time series and length of each time series
         C = zeros(Tx, T, T) # autocorrelation matrix
-        for t1 in 1:T # loop over each time series, i.e. over rows
-            for t2 in 1:t1 # loop over each lag
-                for n in 1:N
+        @inbounds @fastmath for t1 in 1:T # loop over each time series, i.e. over rows
+            @inbounds @fastmath for t2 in 1:t1 # loop over each lag
+                @inbounds @fastmath @simd for n in 1:N
                     C[t1, t2] += X[t1, n] * X[t2, n]
+                    # update progress bar
+                    if p !== nothing
+                        next!(p)
+                    end
                 end
                 C[t1, t2] /= N
             end
@@ -88,7 +96,7 @@ end
 
 
 """
-    compute_autocorr(trajs; time_indices=nothing)
+    compute_autocorr(trajs; time_indices=nothing, showprogress=false)
 
 Compute the average autocorrelation of the trajectories.
 
@@ -97,11 +105,12 @@ Compute the average autocorrelation of the trajectories.
 
 # Keyword Arguments
 - `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the autocorrelation. If `nothing`, all time indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `autocorr::Matrix{Float64}`: The average autocorrelation. The element at index `(l, k)` is the average autocorrelation of the trajectories at discretized times `l` and `k`.
 """
-function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, AbstractVector{Int}}=nothing)
+function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, AbstractVector{Int}}=nothing, showprogress=false)
     T = size(trajs, 2)
     # Filter time indices
     if time_indices === nothing
@@ -110,8 +119,10 @@ function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, A
         t_idx = filter(t -> 1 ≤ t ≤ T, time_indices)
     end   
     T_eff = length(t_idx)
+    # Create a progress bar
+    p = Progress(Int(N * T * (T+1) / 2); enabled=showprogress, dt=0.3, showspeed=true, desc="Computing autocorrelation: ")
     # Compute the autocorrelation at different times
-    autocorr = _autocorr(view(trajs, :, t_idx); dims=1) # Covariance matrix
+    autocorr = _autocorr(view(trajs, :, t_idx); dims=1, p=p) # Covariance matrix
     # Reshape autocorr to be a matrix
     autocorr = reshape(autocorr, T_eff, T_eff)
     return autocorr, t_idx
@@ -119,12 +130,16 @@ end
 
 
 """
-    compute_stats(trajs)
+    compute_stats(trajs; time_indices=nothing, showprogress=false)
 
 Compute the mean, standard deviation and average autocorrelation of the trajectories.
 
 # Arguments
 - `trajs::Matrix{Float64}`: The trajectories. Each column corresponds to a time point.
+
+# Keyword Arguments
+- `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the mean and standard deviation. If `nothing`, all time indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `mean_traj::Vector{Float64}`: The mean trajectory. The element at index `l` is the mean of the trajectories at discretized time `l`.
@@ -132,10 +147,10 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 - `autocorr::Matrix{Float64}`: The average autocorrelation. The element at index `(l, k)` is the average autocorrelation of the trajectories at discretized times `l` and `k`.
 - `t_idx::Vector{Int}`: The time indices used to compute the mean and standard deviation.
 """
-function compute_stats(trajs::Matrix{Float64}; time_indices=nothing)
+function compute_stats(trajs::Matrix{Float64}; time_indices=nothing, showprogress=false)
     # Compute mean, standard deviation and autocorrelation
     mean_traj, std_traj, t_idxm = compute_meanstd(trajs; time_indices=time_indices)
-    autocorr, t_idxC = compute_autocorr(trajs; time_indices=time_indices)
+    autocorr, t_idxC = compute_autocorr(trajs; time_indices=time_indices, showprogress=showprogress)
     @assert t_idxC == t_idxm "Time indices for mean/std and autocorrelation do not match"
     return mean_traj, std_traj, autocorr, t_idxC
 end
@@ -181,7 +196,7 @@ function compute_meanstd(sim::Vector{Matrix{Float64}}; time_indices::Union{Nothi
 end
 
 """
-    compute_autocorr(sim; time_indices=nothing)
+    compute_autocorr(sim; time_indices=nothing, showprogress=false)
 
 Compute the average autocorrelation of the trajectories in the ensemble solution object.
 
@@ -190,12 +205,13 @@ Compute the average autocorrelation of the trajectories in the ensemble solution
 
 # Keyword Arguments
 - `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the autocorrelation. If `nothing`, all time indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `autocorr::Matrix{Float64}`: The average autocorrelation. The element at index `(l, k)` is the average autocorrelation of the trajectories over nodes and ensemble realizations at discretized times `l` and `k`.
 - `t_idx::Vector{Int}`: The time indices used to compute the autocorrelation.
 """
-function compute_autocorr(sim::Vector{Matrix{Float64}}; time_indices=nothing)
+function compute_autocorr(sim::Vector{Matrix{Float64}}; time_indices=nothing, showprogress=false)
     nsim = length(sim)
     N, T = size(sim[1])
     # Filter time indices
@@ -205,20 +221,22 @@ function compute_autocorr(sim::Vector{Matrix{Float64}}; time_indices=nothing)
         t_idx = filter(t -> 1 ≤ t ≤ T, time_indices)
     end
     T_eff = length(t_idx)
+    # Create a progress bar
+    p = Progress(Int(N * nsim * T_eff * (T_eff+1) / 2); enabled=showprogress, dt=0.3, showspeed=true, desc="Computing autocorrelation: ")
     # Flatten data into an (N*nsim) × T_eff matrix
     sim_flattened = zeros(N * nsim, T_eff)
     @inbounds @simd for s in 1:nsim
         sim_flattened[(s-1)*N+1:s*N, :] .= view(sim[s], :, t_idx)
     end
     # Compute the autocorrelation at different times
-    autocorr = _autocorr(sim_flattened; dims=1) # Covariance matrix
+    autocorr = _autocorr(sim_flattened; dims=1, p=p) # Covariance matrix
     # Reshape autocorr to be a matrix
     autocorr = reshape(autocorr, T_eff, T_eff)
     return autocorr, t_idx
 end
 
 """ 
-    compute_stats(sim; time_indices=nothing)
+    compute_stats(sim; time_indices=nothing, showprogress=false)
 
 Compute the mean, standard deviation and average autocorrelation of the trajectories in the ensemble solution object.
 
@@ -227,6 +245,7 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 
 # Keyword Arguments
 - `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the mean and standard deviation. If `nothing`, all time indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `mean_traj::Vector{Float64}`: The mean trajectory. The element at index `l` is the mean of the trajectories over nodes and ensemble realizations at discretized time `l`.
@@ -234,10 +253,10 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 - `autocorr::Matrix{Float64}`: The average autocorrelation. The element at index `(l, k)` is the average autocorrelation of the trajectories over nodes and ensemble realizations at discretized times `l` and `k`.
 - `t_idx::Vector{Int}`: The time indices used to compute the mean and standard deviation.
 """
-function compute_stats(sim::Vector{Matrix{Float64}}; time_indices=nothing)
+function compute_stats(sim::Vector{Matrix{Float64}}; time_indices=nothing, showprogress=false)
     # Compute mean, standard deviation and autocorrelation
     mean_traj, std_traj, t_idxm = compute_meanstd(sim; time_indices=time_indices)
-    autocorr, t_idxC = compute_autocorr(sim; time_indices=time_indices)
+    autocorr, t_idxC = compute_autocorr(sim; time_indices=time_indices, showprogress=showprogress)
     @assert t_idxC == t_idxm "Time indices for mean/std and autocorrelation do not match"
     return mean_traj, std_traj, autocorr, t_idxC
 end

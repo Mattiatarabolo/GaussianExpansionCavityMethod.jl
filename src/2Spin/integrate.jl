@@ -1,5 +1,5 @@
 # Function to compute mu(n*dt + dt) (\lambda/(t) in the paper, Eq (112))
-function compute_mu_Bim!(mu, K, J, D, Ch, Rh, C, R, n, dt, p)
+function compute_mu_Bim!(mu, J, D, Ch, Rh, C, R, n, dt, p)
 	# Initialize integrals
 	int1, int2 = 0.0, 0.0
 	# Iterate from 0 to n-1
@@ -10,6 +10,32 @@ function compute_mu_Bim!(mu, K, J, D, Ch, Rh, C, R, n, dt, p)
 		next!(p)
 	end
 	mu[n] = D + dt * J^2 * (int1 + int2)
+end
+
+
+# Function to compute mu(n*dt + dt) (\lambda/(t) in the paper, Eq (112))
+function compute_corrs_mu_Bim!(mu, Ch, C, K, J, D, Rh, R, n, dt, p)
+	# Initialize integrals
+	intmu, int1h, int2h, int1, int2 = 0.0, 0.0, 0.0, 0.0, 0.0
+	# Iterate from 0 to n-1
+	@fastmath @inbounds @simd for m in 0:n-1  # should be up to n, but R[n,n]=Rh[n,n]=0
+		intmu += Rh[n+1, m] * C[n+1, m] + R[n+1, m] * Ch[n+1, m]
+		int1h += Rh[n, m] * Ch[n+1, m]
+		int2h += Rh[n+1, m] * Ch[n, m]
+		int1 += Rh[n, m] * C[n+1, m]
+		int2 += R[n+1, m] * Ch[n, m]
+		# update progress bar
+		next!(p)
+	end
+	# Add term for m = n
+	intmu += Rh[n+1, n] * C[n+1, n] + R[n+1, n] * Ch[n+1, n]
+	int2h += Rh[n+1, n] * Ch[n+1, n]
+	int2 += R[n+1, n] * Ch[n+1, n]
+	# Compute mu(n*dt + dt) (\lambda/(t) in the paper, Eq (112))
+	mu[n+1] = D + dt * J^2 * intmu
+	# Compute Ch(n*dt + dt, n*dt + dt) (Eq. (109)), C(n*dt + dt, n*dt + dt) (Eq. (111))
+	Ch[n+1, n+1] = (1 - mu[n] * dt) * Ch[n+1, n] + dt^2 * (K - 1) / K * J^2 * (int1h + int2h) + 2 * dt * D * Rh[n+1, n]
+	C[n+1, n+1] = (1 - mu[n] * dt) * C[n+1, n] + dt^2 * J^2 * (int1 + int2) + 2 * dt * D * R[n+1, n]
 end
 
 function compute_integrals_Bim(Ch, Rh, C, R, n, l, p)
@@ -25,10 +51,8 @@ function compute_integrals_Bim(Ch, Rh, C, R, n, l, p)
 		next!(p)
 	end
 	# Add term for m = l
-	if l < n
-		int2h += Rh[n, l] # * Ch[l, l] = 1
-		int2 += Rh[n, l] # * C[l, l] = 1
-	end
+	int2h += Rh[n, l] * Ch[l, l]
+	int2 += Rh[n, l] * C[l, l]
 	# update progress bar
 	next!(p)
 	# Iterate from l+1 to n-1
@@ -54,7 +78,7 @@ function compute_functions_Bim!(Ch, Rh, C, R, K, J, mu, n, l, dt, p)
 	# Compute R(n*dt + dt, l*dt) (Eq. (110))
 	R[n+1, l] = (1 - mu[n] * dt) * R[n, l] + dt^2 * J^2 * int1 + (n == l)
 	# Compute C(n*dt + dt, l*dt) (Eq. (111))
-	C[n+1, l] = (1 - mu[n] * dt) * C[n, l] + dt^2 * J^2 * int2 + dt^2 * J^2 * (int2 + int3)
+	C[n+1, l] = (1 - mu[n] * dt) * C[n, l] + dt^2 * J^2 * (int2 + int3)
 end
 
 
@@ -120,12 +144,17 @@ function integrate_2spin_Bim_RRG(K::Int, J::Float64, D::Float64, dt::Float64, T:
 		@fastmath @inbounds for l in 0:n
 			compute_functions_Bim!(Ch, Rh, C, R, K, J, mu, n, l, dt, p)
 		end
+		#=
         # Ensure spherical constraint, Ch(t, t) = 1.0 = C(t, t)
 		Ch[n+1, n+1] = 1.0
 		C[n+1, n+1] = 1.0
-        # Compute mu(n*dt + dt) (\lambda/(t) in the paper, Eq (112))
-		compute_mu_Bim!(mu, K, J, D, Ch, Rh, C, R, n+1, dt, p)
-        # Save backup every backupevery iterations
+		# Compute mu(n*dt + dt) (\lambda/(t) in the paper, Eq (112))
+		compute_mu_Bim!(mu, J, D, Ch, Rh, C, R, n+1, dt, p)
+		=#
+		# Compute Ch(n*dt + dt, n*dt + dt) (Eq. (109)), C(n*dt + dt, n*dt + dt) (Eq. (111)) and mu(n*dt + dt) (\lambda/(t) in the paper, Eq (112))
+		compute_corrs_mu_Bim!(mu, Ch, C, K, J, D, Rh, R, n, dt, p)
+        
+		# Save backup every backupevery iterations
 		if backup && n % backupevery == 0
             jldsave(backupfile; C, R, Ch, Rh, mu, n)
         end
