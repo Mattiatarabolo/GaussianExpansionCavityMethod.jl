@@ -60,6 +60,46 @@ function _autocorr(X; dims=1, p=nothing)
     end
 end
 
+function _autocorr_tws(X, tws_idxs, ts_idxs; dims=1, p=nothing)
+    Tx = eltype(X)
+    if dims == 1
+        N, T = size(X) # number of time series and length of each time series
+        Cs = [zeros(Tx, length(t_idx)) for t_idx in ts_idxs] # autocorrelations
+        @inbounds @fastmath for (i, tw_idx) in enumerate(tws_idxs)
+            @inbounds @fastmath for (j, t_idx) in enumerate(ts_idxs[i]) # loop over each time series, i.e. over rows
+                @inbounds @fastmath @simd for n in 1:N
+                    Cs[i][j] += X[n, tw_idx] * X[n, t_idx]
+                    # update progress bar
+                    if p !== nothing
+                        next!(p)
+                    end
+                end
+                Cs[i][j] /= N
+            end
+        end
+        return Cs
+    elseif dims == 2
+        T, N = size(X) # number of time series and length of each time series
+        Cs = [zeros(Tx, length(t_idx)) for t_idx in ts_idxs] # autocorrelations
+        @inbounds @fastmath for (i, tw_idx) in enumerate(tws_idxs)
+            @inbounds @fastmath for (j, t_idx) in enumerate(ts_idxs[i]) # loop over each time series, i.e. over rows
+                @inbounds @fastmath @simd for n in 1:N
+                    Cs[i][j] += X[tw_idx, n] * X[t_idx, n]
+                    # update progress bar
+                    if p !== nothing
+                        next!(p)
+                    end
+                end
+                Cs[i][j] /= N
+            end
+        end
+        return Cs
+    else
+        throw(ArgumentError("Invalid dimension: $dims"))
+    end
+end
+
+
 """
     compute_meanstd(trajs; time_indices=nothing)
 
@@ -128,6 +168,36 @@ function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, A
     return autocorr, t_idx
 end
 
+"""
+    compute_autocorr(trajs::Matrix{Float64}, tws_idxs::Vector{Int}; time_indices=nothing, showprogress=false)
+
+Compute the average autocorrelation of the trajectories. It computes the autocorrelation for each waiting time specified by the vector `tws_idxs`. For each waiting time `tw`, it computes the autocorrelation `C(t + tw, tw)` for all `t` in the `time_indices`. If `time_indices` is `nothing`, it computes the autocorrelation for all time indices after `tw`.
+
+# Arguments
+- `trajs::Matrix{Float64}`: The trajectories. Each column corresponds to a time point.
+- `tws_idxs::Vector{Int}`: The waiting times to compute the autocorrelation.
+
+# Keyword Arguments
+- `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the autocorrelation. If `nothing`, all time indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
+
+# Returns
+- `autocorrs::Vector{Matrix{Float64}}`: The average autocorrelation for each waiting time. The element at index `(i, l, k)` is the average autocorrelation of the trajectories at discretized times `l` and `k` for the waiting time `tws_idxs[i]`.
+- `time_indices::Vector{Vector{Int}}`: The time indices used to compute the autocorrelation for each waiting time.
+"""
+function compute_autocorr(trajs::Matrix{Float64}, tws_idxs::Vector{Int}; time_indices=nothing, showprogress=false)
+    N, T = size(trajs)
+    if time_indices === nothing
+        time_indices = [tw_idx:T for tw_idx in tws_idxs]
+    else
+        time_indices = [filter(t -> tw_idx ≤ t ≤ T, time_indices[i]) for (i, tw_idx) in enumerate(tws_idxs)]  
+    end
+    # Create a progress bar
+    p = Progress(N * sum(length(t_idxs) for t_idxs in time_indices); enabled=showprogress, dt=1.0, showspeed=true, desc="Computing autocorrelation: ")
+    # Compute the autocorrelation at different times
+    autocorrs = _autocorr_tws(trajs, tws_idxs, time_indices; dims=1, p=p) # Covariances
+    return autocorrs, time_indices
+end
 
 """
     compute_stats(trajs; time_indices=nothing, showprogress=false)
@@ -233,6 +303,43 @@ function compute_autocorr(sim::Vector{Matrix{Float64}}; time_indices=nothing, sh
     # Reshape autocorr to be a matrix
     autocorr = reshape(autocorr, T_eff, T_eff)
     return autocorr, t_idx
+end
+
+"""
+    compute_autocorr(sim::Vector{Matrix{Float64}}, tws_idxs::Vector{Int}; time_indices=nothing, showprogress=false)
+
+Compute the average autocorrelation of the trajectories in the ensemble solution object.
+It computes the autocorrelation for each waiting time specified by the vector `tws_idxs`. For each waiting time `tw`, it computes the autocorrelation `C(t + tw, tw)` for all `t` in the `time_indices`. If `time_indices` is `nothing`, it computes the autocorrelation for all time indices after `tw`.
+
+# Arguments
+- `sim::Vector{Matrix{Float64}}`: The ensemble solution object. Each element is a matrix where each column corresponds to a time point.
+- `tws_idxs::Vector{Int}`: The waiting times to compute the autocorrelation.
+
+# Keyword Arguments
+- `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the autocorrelation. If `nothing`, all time indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
+
+# Returns
+- `autocorrs::Vector{Matrix{Float64}}`: The average autocorrelation for each waiting time. The element at index `(i, l, k)` is the average autocorrelation of the trajectories over nodes and ensemble realizations at discretized times `l` and `k` for the waiting time `tws_idxs[i]`.
+- `time_indices::Vector{Vector{Int}}`: The time indices used to compute the autocorrelation for each waiting time.
+"""
+function compute_autocorr(sim::Vector{Matrix{Float64}}, tws_idxs::Vector{Int}; time_indices=nothing, showprogress=false)
+    nsim = length(sim)
+    N, T = size(sim[1])
+    if time_indices === nothing
+        time_indices = [tw_idx:T for tw_idx in tws_idxs]
+    else
+        time_indices = [filter(t -> tw_idx ≤ t ≤ T, time_indices[i]) for (i, tw_idx) in enumerate(tws_idxs)]  
+    end
+    # Create a progress bar
+    p = Progress(Int(N * nsim * sum(length(t_idxs) for t_idxs in time_indices)); enabled=showprogress, dt=1.0, showspeed=true, desc="Computing autocorrelation: ")
+    # Initialize autocorrs vector
+    autocorrs = [zeros(length(t_idx)) for t_idx in time_indices] # autocorrelations
+    # Iterate over simulations and sum into autocorrs
+    @inbounds @fastmath for isim in 1:nsim
+        autocorrs .+= _autocorr_tws(sim[isim], tws_idxs, time_indices; dims=1, p=p) # Covariances
+    end
+    return autocorrs, time_indices
 end
 
 """ 
