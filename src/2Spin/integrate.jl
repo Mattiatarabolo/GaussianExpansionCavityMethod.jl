@@ -134,7 +134,7 @@ function integrate_2spin_Bim_RRG(K::Int, J::Float64, D::Float64, dt::Float64, T:
 	mu[0] = D
 
 	# Initialize progress bar for the cavity updates
-    p_tot_iterations = Int(T * (T - 1) * (2 * T - 1) / 6 + T * (T - 1))
+    p_tot_iterations = Int(T + T * (T - 1) * (2 * T - 1) / 6 + T * (T - 1))
     p = Progress(p_tot_iterations; enabled=showprogress, dt=0.3, showspeed=true, desc="Progress: ")
 
 	# Integration loop
