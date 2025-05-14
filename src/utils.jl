@@ -339,6 +339,8 @@ function compute_autocorr(sim::Vector{Matrix{Float64}}, tws_idxs::Vector{Int}; t
     @inbounds @fastmath for isim in 1:nsim
         autocorrs .+= _autocorr_tws(sim[isim], tws_idxs, time_indices; dims=1, p=p) # Covariances
     end
+    # Average over simulations
+    autocorrs ./= nsim
     return autocorrs, time_indices
 end
 
