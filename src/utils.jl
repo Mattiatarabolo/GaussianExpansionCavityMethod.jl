@@ -1,10 +1,22 @@
 lagmax(T) = min(T-1, round(Int,T * 0.99))
 
-function demean_ts!(z, X, i, mean_traj)
-    z .= view(X, i, :) .- mean_traj
+function demean_ts!(z, X, i, mean_traj, p)
+    @inbounds @fastmath @simd for t in 1:length(z)
+        z[t] = X[i,t] - mean_traj[t]
+        # update progress bar
+        next!(p)
+    end
 end
-_autodot(x, lx, l) = dot(x, 1:lx-l, x, 1+l:lx)
-function autocorr_TTI(X, lags)
+function _autodot(x, lx, l, p)
+    dotprod = 0.0
+    @inbounds @fastmath @simd for i in 1:lx-l
+        dotprod += x[i] * x[i+l]
+        # update progress bar
+        next!(p)
+    end
+    return dotprod
+end
+function autocorr_TTI(X, lags, p)
     Tx = eltype(X)
     N, T = size(X) # number of time series and length of each time series
     m = length(lags) # number of lags
@@ -12,10 +24,10 @@ function autocorr_TTI(X, lags)
     z = zeros(Tx, T) # temporary vector to store the demeaned time series
     mean_traj= reshape(mean(X; dims=1), T) # mean over time series at each time
     for i = 1 : N # loop over each time series, i.e. over rows
-        demean_ts!(z, X, i, mean_traj) # demean the time series
-        r[i, 1] = _autodot(z, T, lags[1])
+        demean_ts!(z, X, i, mean_traj, p) # demean the time series
+        r[i, 1] = _autodot(z, T, lags[1], p)
         for j = 2 : m # loop over each lag
-            r[i, j] = _autodot(z, T, lags[j]) / r[i, 1]
+            r[i, j] = _autodot(z, T, lags[j], p) / r[i, 1]
         end
     end
     return r
@@ -372,7 +384,7 @@ end
 
 
 """
-    compute_autocorr_TTI(trajs, teq; lag_indices=nothing)
+    compute_autocorr_TTI(trajs, teq; lag_indices=nothing, showprogress=false)
 
 Compute the average autocorrelation of the trajectories in the stationary phase, i.e. after the transient time `teq`. It assumes that after the transient time, the trajectories are stationary, therefore the autocorrelation is time tranlational invariant (TTI), i.e. it only depends on the time differences `C(t,t') = C(t-t')`.
 
@@ -382,13 +394,14 @@ Compute the average autocorrelation of the trajectories in the stationary phase,
 
 # Keyword Arguments
 - `lag_indices::Union{Nothing, AbstractVector{Int}}`: The lag indices to compute the autocorrelation. If `nothing`, all lag indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `autocorr::Vector{Float64}`: The average TTI autocorrelation. The element at index `l` is the average autocorrelation of the trajectories at discretized time difference `l`.
 - `err_autocorr::Vector{Float64}`: The error associated to the TTI autocorrelation. The element at index `l` is error of the average autocorrelation of the trajectories at discretized time difference `l`.
 - `l_idx::Vector{Int}`: The lag indices used to compute the autocorrelation.
 """
-function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=nothing)
+function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=nothing, showprogress=false)
     N, T = size(trajs)    
     
     # Filter lags
@@ -398,9 +411,10 @@ function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=noth
         l_idx = filter(l -> 0 ≤ l ≤ lagmax(T-teq+1), lag_indices)
     end
     L_eff = length(l_idx)
-
+    # Create a progress bar
+    p = Progress(Int(N * ((T - teq + 1) * (1 + L_eff) - sum(l_idx))); enabled=showprogress, dt=0.3, showspeed=true, desc="Computing autocorrelation: ")
     # Compute the autocorrelation at different lags for each node and simulation
-    autocorr_all = autocorr_TTI(trajs[:,teq:T], l_idx)
+    autocorr_all = autocorr_TTI(trajs[:,teq:T], l_idx, p)
     # Average over nodes and simulations and estimate error
     autocorr = mean(autocorr_all; dims=1)
     std_autocorr = std(autocorr_all; dims=1, mean=autocorr, corrected=true)
@@ -412,7 +426,7 @@ function compute_autocorr_TTI(trajs::Matrix{Float64}, teq::Int; lag_indices=noth
 end
 
 """
-    compute_stats_TTI(trajs, teq; time_indices=nothing, lag_indices=nothing)
+    compute_stats_TTI(trajs, teq; time_indices=nothing, lag_indices=nothing, showprogress=false)
 
 Compute the mean, standard deviation and average autocorrelation of the trajectories in the stationary phase, i.e. after the transient time `teq`. It assumes that after the transient time, the trajectories are stationary, therefore the autocorrelation is time tranlational invariant (TTI), i.e. it only depends on the time differences `C(t,t') = C(t-t')`.
 
@@ -423,6 +437,7 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 # Keyword Arguments
 - `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the mean and standard deviation. If `nothing`, all time indices are used.
 - `lag_indices::Union{Nothing, AbstractVector{Int}}`: The lag indices to compute the autocorrelation. If `nothing`, all lag indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `mean_traj::Vector{Float64}`: The mean TTI trajectory. The element at index `l` is the mean of the trajectories at discretized time `l`.
@@ -432,16 +447,16 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 - `err_autocorr::Vector{Float64}`: The error associated to the TTI autocorrelation. The element at index `l` is error of the average autocorrelation of the trajectories at discretized time difference `l`.
 - `l_idx::Vector{Int}`: The lag indices used to compute the autocorrelation.
 """
-function compute_stats_TTI(trajs::Matrix{Float64}, teq::Int; time_indices=nothing, lag_indices=nothing)
+function compute_stats_TTI(trajs::Matrix{Float64}, teq::Int; time_indices=nothing, lag_indices=nothing, showprogress=false)
     # Compute mean and standard deviation for each time
     mean_traj, std_traj, t_idx = compute_meanstd(trajs; time_indices=time_indices)
     # Compute the autocorrelation
-    autocorr, err_autocorr, l_idx = compute_autocorr_TTI(trajs, teq; lag_indices=lag_indices)
+    autocorr, err_autocorr, l_idx = compute_autocorr_TTI(trajs, teq; lag_indices=lag_indices, showprogress=showprogress)
     return mean_traj, std_traj, t_idx, autocorr, err_autocorr, l_idx
 end
 
 """
-    compute_autocorr_TTI(sim, teq; lag_indices=nothing)
+    compute_autocorr_TTI(sim, teq; lag_indices=nothing, showprogress=false)
 
 Compute the average autocorrelation of the trajectories in the ensemble solution object in the stationary phase, i.e. after the transient time `teq`. It assumes that after the transient time, the trajectories are stationary, therefore the autocorrelation is time tranlational invariant (TTI), i.e. it only depends on the time differences `C(t,t') = C(t-t')`.
 
@@ -451,13 +466,14 @@ Compute the average autocorrelation of the trajectories in the ensemble solution
 
 # Keyword Arguments
 - `lag_indices::Union{Nothing, AbstractVector{Int}}`: The lag indices to compute the autocorrelation. If `nothing`, all lag indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `autocorr::Vector{Float64}`: The average TTI autocorrelation. The element at index `l` is the average autocorrelation of the trajectories over nodes and ensemble realizations at discretized time difference `l`.
 - `err_autocorr::Vector{Float64}`: The error associated to the TTI autocorrelation. The element at index `l` is error of the average autocorrelation of the trajectories over nodes and ensemble realizations at discretized time difference `l`.
 - `l_idx::Vector{Int}`: The lag indices used to compute the autocorrelation.
 """
-function compute_autocorr_TTI(sim::Vector{Matrix{Float64}}, teq::Int; lag_indices::Union{Nothing, AbstractVector{Int}}=nothing)
+function compute_autocorr_TTI(sim::Vector{Matrix{Float64}}, teq::Int; lag_indices::Union{Nothing, AbstractVector{Int}}=nothing, showprogress=false)
     nsim = length(sim)
     N, T = size(sim[1])    
     
@@ -474,9 +490,10 @@ function compute_autocorr_TTI(sim::Vector{Matrix{Float64}}, teq::Int; lag_indice
     @inbounds @simd for s in 1:nsim
         sim_flattened[(s-1)*N+1:s*N, :] .= view(sim[s], :, teq:T)
     end
-
+    # Create a progress bar
+    p = Progress(Int(N * nsim * ((T - teq + 1) * (1 + L_eff) - sum(l_idx))); enabled=showprogress, dt=0.3, showspeed=true, desc="Computing autocorrelation: ")
     # Compute the autocorrelation at different lags for each node and simulation
-    autocorr_all = autocorr_TTI(sim_flattened, l_idx)
+    autocorr_all = autocorr_TTI(sim_flattened, l_idx, p)
     # Average over nodes and simulations and estimate error
     autocorr = mean(autocorr_all; dims=1)
     std_autocorr = std(autocorr_all; dims=1, mean=autocorr, corrected=true)
@@ -488,7 +505,7 @@ function compute_autocorr_TTI(sim::Vector{Matrix{Float64}}, teq::Int; lag_indice
 end
 
 """
-    compute_stats_TTI(sim, teq; time_indices=nothing, lag_indices=nothing)
+    compute_stats_TTI(sim, teq; time_indices=nothing, lag_indices=nothing, showprogress=false)
 
 Compute the mean, standard deviation and average autocorrelation of the trajectories in the ensemble solution object in the stationary phase, i.e. after the transient time `teq`. It assumes that after the transient time, the trajectories are stationary, therefore the autocorrelation is time tranlational invariant (TTI), i.e. it only depends on the time differences `C(t,t') = C(t-t')`.
 
@@ -499,6 +516,7 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 # Keyword Arguments
 - `time_indices::Union{Nothing, AbstractVector{Int}}`: The time indices to compute the mean and standard deviation. If `nothing`, all time indices are used.
 - `lag_indices::Union{Nothing, AbstractVector{Int}}`: The lag indices to compute the autocorrelation. If `nothing`, all lag indices are used.
+- `showprogress::Bool`: Whether to show a progress bar. Default is `false`.
 
 # Returns
 - `mean_traj::Vector{Float64}`: The mean TTI trajectory. The element at index `l` is the mean of the trajectories over nodes and ensemble realizations at discretized time `l`.
@@ -508,10 +526,10 @@ Compute the mean, standard deviation and average autocorrelation of the trajecto
 - err_autocorr::Vector{Float64}: The error associated to the TTI autocorrelation. The element at index `l` is error of the average autocorrelation of the trajectories over nodes and ensemble realizations at discretized time difference `l`.
 - `l_idx::Vector{Int}`: The lag indices used to compute the autocorrelation.
 """
-function compute_stats_TTI(sim::Vector{Matrix{Float64}}, teq::Int; time_indices::Union{Nothing, AbstractVector{Int}}=nothing, lag_indices::Union{Nothing, AbstractVector{Int}}=nothing)
+function compute_stats_TTI(sim::Vector{Matrix{Float64}}, teq::Int; time_indices::Union{Nothing, AbstractVector{Int}}=nothing, lag_indices::Union{Nothing, AbstractVector{Int}}=nothing, showprogress=false)
     # Compute mean and standard deviation for each time
     mean_traj, std_traj, t_idx = compute_meanstd(sim; time_indices=time_indices)
     # Compute the autocorrelation
-    autocorr, err_autocorr, l_idx = compute_autocorr_TTI(sim, teq; lag_indices=lag_indices)
+    autocorr, err_autocorr, l_idx = compute_autocorr_TTI(sim, teq; lag_indices=lag_indices, showprogress=showprogress)
     return mean_traj, std_traj, t_idx, autocorr, err_autocorr, l_idx
 end
