@@ -30,7 +30,7 @@ pkg> add https://github.com/Mattiatarabolo/GaussianExpansionCavityMethod.jl
 Or, equivalently, via the `Pkg` API:
 
 ```julia-repl
-julia> import Pkg; Pkg.add("GaussianExpansionCavityMethod")
+julia> import Pkg; Pkg.add(url="https://github.com/Mattiatarabolo/GaussianExpansionCavityMethod.jl")
 ```
 
 # References
