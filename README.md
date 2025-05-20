@@ -18,7 +18,7 @@ The package offers many functions to simulate the dynamics of coupled SDEs throu
 - Bouchaud-Mezard model on sparse graphs.
 - Spherical 2-spin model on sparse graphs.
 
-More details can be found in the [examples](https://Mattiatarabolo.github.io/GaussianExpansionCavityMethod.jl/stable/examples/) folder.
+More details can be found in the [examples](./examples/) folder.
 
 # Installation
 
