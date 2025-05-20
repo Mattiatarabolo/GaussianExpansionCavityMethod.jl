@@ -1,7 +1,7 @@
 name = "GaussianExpansionCavityMethod"
 uuid = "e07873fc-887d-4a56-bff1-02ba28e82f55"
 authors = ["Mattia Tarabolo <mattia.tarabolo@gmail.com> and contributors"]
-version = "1.0.0-DEV"
+version = "1.0.0"
 
 [deps]
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
