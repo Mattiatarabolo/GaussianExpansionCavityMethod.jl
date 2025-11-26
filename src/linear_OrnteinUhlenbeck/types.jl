@@ -300,9 +300,9 @@ struct Node
         neighs_idxs = Dict{Int, Int}(neighs[j] => j for j in 1:length(neighs))
         cavs = [Cavity(i, neighs[j], T) for j in 1:length(neighs)]
         margs = Marginal(i, T)
-        summu = OffsetVector(zeros(T), 0:T-1)
-        sumC = OffsetMatrix(zeros(T, T), 0:T-1, 0:T-1)
-        sumR = OffsetMatrix(zeros(T, T-1), 0:T-1, 0:T-2)
+        summu = OffsetVector(zeros(T+1), 0:T)
+        sumC = OffsetMatrix(zeros(T+1, T+1), 0:T, 0:T)
+        sumR = OffsetMatrix(zeros(T+1, T), 0:T, 0:T-1)
         new(i, neighs, neighs_idxs, cavs, margs, summu, sumC, sumR)
     end
 end
@@ -434,8 +434,8 @@ mutable struct NodeEQ
         neighs_idxs = Dict{Int, Int}(neighs[j] => j for j in 1:length(neighs))
         cavs = [CavityEQ(i, neighs[j], T) for j in 1:length(neighs)]
         marg = MarginalEQ(i, T)
-        sumC = OffsetVector(zeros(T), 0:T-1)
-        sumdiffC = OffsetVector(zeros(T-1), 0:T-2)
+        sumC = OffsetVector(zeros(T+1), 0:T)
+        sumdiffC = OffsetVector(zeros(T), 0:T-1)
         new(i, neighs, neighs_idxs, cavs, marg, sumC, sumdiffC)
     end
 end

@@ -161,6 +161,7 @@ Compute the average autocorrelation of the trajectories.
 
 # Returns
 - `autocorr::Matrix{Float64}`: The average autocorrelation. The element at index `(l, k)` is the average autocorrelation of the trajectories at discretized times `l` and `k`.
+- `t_idx::Vector{Int}`: The time indices used to compute the autocorrelation.
 """
 function compute_autocorr(trajs::Matrix{Float64}; time_indices::Union{Nothing, AbstractVector{Int}}=nothing, showprogress=false)
     N, T = size(trajs)
